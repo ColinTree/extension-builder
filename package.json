@@ -12,5 +12,8 @@
   "bugs": {
     "url": "https://github.com/ColinTree-bot/extension-builder/issues"
   },
-  "homepage": "https://github.com/ColinTree-bot/extension-builder#readme"
+  "homepage": "https://github.com/ColinTree-bot/extension-builder#readme",
+  "dependencies": {
+    "shelljs": "^0.8.3"
+  }
 }
