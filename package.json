@@ -1,0 +1,16 @@
+{
+  "name": "extension-builder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ColinTree-bot/extension-builder.git"
+  },
+  "author": "ColinTree",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/ColinTree-bot/extension-builder/issues"
+  },
+  "homepage": "https://github.com/ColinTree-bot/extension-builder#readme"
+}
