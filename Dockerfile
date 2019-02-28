@@ -8,7 +8,7 @@ RUN apt-get update -yq \
 
 RUN npm i -g pm2 \
     && git clone https://github.com/mit-cml/appinventor-sources.git /usr/workspace \
-    && cd /use/workspace \
+    && cd /usr/workspace \
     && git submodule init \
     && git submodule update
 
