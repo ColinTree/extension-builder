@@ -8,17 +8,18 @@ startServer();
 
 function startServer() {
   let deployServer = http.createServer((request, response) => {
-    var content = "";
+    let content = "";
   
-    req.on('data', function (chunk) {
+    req.on('data', chunk => {
       content += chunk;
     });
   
-    req.on('end', function () {
+    req.on('end', () => {
       exec("cd " + AI_WORKSPACE + " && git status && git reset --hard HEAD && git clean -f && git status")
       .then(stdout => {
-        response.writeHead(200);
-        response.end(stdout);
+        response.writeHead(200, {"Content-Type": "text/plain"});
+        response.write(stdout);
+        response.end();
       });
     });
   });
