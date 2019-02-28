@@ -14,7 +14,7 @@ RUN npm i -g pm2 \
 
 WORKDIR /usr/src
 
-COPY package*.json .
+COPY package*.json ./
 RUN npm i
 
 COPY . .
