@@ -17,6 +17,6 @@
     "shelljs": "^0.8.3"
   },
   "scripts": {
-    "start": "pm2 start index.js --name extension-builder"
+    "start": "node server.js"
   }
 }
