@@ -15,5 +15,8 @@
   "homepage": "https://github.com/ColinTree-bot/extension-builder#readme",
   "dependencies": {
     "shelljs": "^0.8.3"
+  },
+  "scripts": {
+    "start": "pm2 start index.js extension-builder"
   }
 }
