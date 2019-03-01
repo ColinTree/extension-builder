@@ -6,7 +6,7 @@
     "sourceMap": false,
     "rootDir":"./src",
     "outDir":"./build",
-    "watch":true
+    "watch":false
   },
   "include":[
     "./src/**/*"
