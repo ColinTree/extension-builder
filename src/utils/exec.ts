@@ -1,4 +1,4 @@
-let exec = require("shelljs").exec;
+import { exec } from "shelljs";
 
 /**
  * Execute a command with promise returns
@@ -7,7 +7,7 @@ let exec = require("shelljs").exec;
  *    With then(stdout => {execute when result code is 0})
  *    and catch((response = [code, stderr]) => {execute when code other than 0 returned})
  */
-module.exports = function(command) {
+export default (command: string) => {
   return new Promise((resolve, reject) => {
     exec(command, (code, stdout, stderr) => {
       if (code == 0) {
