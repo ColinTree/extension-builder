@@ -12,13 +12,16 @@ class BuildQueue extends Queue<string> {
     Builder.notify();
   }
 }
-class JobPool {
+export class JobPool {
   private static pool = new Map<string, Job>();
   public static add(jobId: string, job: Job) {
     JobPool.pool.set(jobId, job);
   }
   public static get(jobId: string): Job {
-    return JobPool.get(jobId);
+    return JobPool.pool.get(jobId);
+  }
+  public static has(jobId: string) {
+    return JobPool.pool.has(jobId);
   }
 }
 const buildQueue = new BuildQueue();
@@ -35,14 +38,15 @@ interface JobConfig {
 class Job {
   private _id: string;
   private _config: JobConfig;
-  public _status: "waiting" | "building" | "done";
 
   get id() { return this._id; }
   get config() { return this._config; }
 
+  public status: "waiting" | "building" | "done";
+
   public constructor(jobId: string) {
     this._id = jobId;
-    this._status = "waiting";
+    this.status = "waiting";
     this.loadConfig()
     .then(config => {
       this._config = config;
@@ -71,7 +75,7 @@ class Builder {
         // TODO: multi-extension building
       } else {
         let jobId = buildQueue.pop();
-        JobPool.get(jobId)._status = "building";
+        JobPool.get(jobId).status = "building";
         Builder.cleanWorkspace()
         .then(() => Builder.buildJob(jobId));
       }
@@ -103,7 +107,7 @@ class Builder {
         fs.ensureDirSync(jobOutputDir);
         fs.emptyDirSync(jobOutputDir);
         fs.copySync(WORKSPACE + "/appinventor/components/build/extensions", jobOutputDir);
-        JobPool.get(jobId)._status = "done";
+        JobPool.get(jobId).status = "done";
         console.timeLog("Done job(" + jobId + "): " + jobOutputDir);
         Builder.builderAvailable = true;
         Builder.notify();

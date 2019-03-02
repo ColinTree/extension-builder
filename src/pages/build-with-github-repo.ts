@@ -5,7 +5,7 @@ import * as fs from "fs-extra";
 import * as Admzip from "adm-zip";
 
 import { ENABLE_REPO_WHITELIST, TEMP_DIR, inWhitelist } from "../config";
-import { CONTENT_TYPE_JSON, responseError } from "../index";
+import { responseSuccess, responseError } from "../index";
 import { addBuildQueue } from "../builder";
 
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
@@ -24,12 +24,10 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
       let jobId = fs.mkdtempSync(TEMP_DIR + "/");
       jobId = jobId.substring(jobId.lastIndexOf("/") + 1);
 
-      response.writeHead(200, CONTENT_TYPE_JSON);
-      response.end(JSON.stringify({
-        status: "success",
+      responseSuccess(response, {
         msg: "Build started.",
         jobId: jobId
-      }));
+      });
 
       getZip(jobId, owner, repoName, branch)
       .then(zipName => prepareSource(jobId, zipName))
@@ -46,15 +44,13 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
   } else if (request.method == "POST") {
     // webhook
     let content = "";
-  
+
     request.on("data", chunk => {
       content += chunk;
     });
-  
+
     request.on("end", () => {
-      response.writeHead(200, {"Content-Type": "text/plain"});
-      response.write(content);
-      response.end();
+      responseSuccess(response, { content: content });
     });
     return;
   }

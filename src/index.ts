@@ -5,14 +5,16 @@ import * as fs from "fs-extra";
 import { PORT, TEMP_DIR, EMPTY_TEMP_DIR_BEFORE_BUILD } from "./config";
 import handleBuildWithGithubRepo from "./pages/build-with-github-repo";
 import handleBuildWithZip from "./pages/build-with-zip";
+import handleCheckStatus from "./pages/check-status";
 
 export const CONTENT_TYPE_JSON = {"Content-Type": "application/json"};
+export function responseSuccess(response: http.ServerResponse, info: {}) {
+  response.writeHead(200, CONTENT_TYPE_JSON);
+  response.end(JSON.stringify(info));
+}
 export function responseError(response: http.ServerResponse, code: number, msg: string) {
   response.writeHead(code, CONTENT_TYPE_JSON);
-  response.end(JSON.stringify({
-    status: "error",
-    msg: msg
-  }));
+  response.end(JSON.stringify({ msg: msg }));
 }
 
 function startServer() {
@@ -27,6 +29,9 @@ function startServer() {
           break;
         case "/build-with-zip":
           handleBuildWithZip(request, response, params);
+          break;
+        case "/check-status":
+          handleCheckStatus(request, response, params);
           break;
       }
       responseError(response, 404, "404 Not found.");
