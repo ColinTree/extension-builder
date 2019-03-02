@@ -9,7 +9,7 @@ class BuildQueue extends Queue<string> {
   constructor() { super(); }
   public push(jobId: string) {
     super.push(jobId);
-    console.timeLog("Added", jobId);
+    console.timeLog("Added job(" + jobId + ")");
     Builder.notify();
   }
 }
@@ -43,7 +43,7 @@ class Job {
   get id() { return this._id; }
   get config() { return this._config; }
 
-  public status: "waiting" | "building" | "done";
+  public status: "waiting" | "building" | "done" | "failed";
 
   public constructor(jobId: string) {
     this._id = jobId;
@@ -94,14 +94,14 @@ class Builder {
   private static buildJob(jobId: string) {
     return new Promise<void>(resolve => {
       let job = JobPool.get(jobId);
-      console.timeLog("Going to copy job(" + jobId + ")");
+      console.timeLog("Going to build job(" + jobId + ")");
       let config = job.config;
       let targetPath = WORKSPACE + "/appinventor/components/src/" + config.package.split(".").join("/") + "/";
       fs.ensureDirSync(targetPath);
       fs.emptyDirSync(targetPath);
       fs.copySync(TEMP_DIR + "/" + jobId + "/src/", targetPath);
-      console.timeLog("Copied: " + targetPath);
-      console.timeLog("Compile started: job(" + jobId + ")");
+      console.log("Copied: " + targetPath);
+      console.log("Compile started: job(" + jobId + ")");
       exec("cd " + WORKSPACE + "/appinventor && ant extensions", true)
       .then(stdout => {
         let zip = new AdmZip();
@@ -109,13 +109,16 @@ class Builder {
         let zipPath = OUTPUT_DIR + "/" + jobId + ".zip";
         zip.writeZip(zipPath);
         JobPool.get(jobId).status = "done";
-        console.timeLog("Done job(" + jobId + "): " + zipPath);
+        console.log("Done job(" + jobId + "): " + zipPath);
         Builder.builderAvailable = true;
         Builder.notify();
         resolve();
       })
       .catch(reason => {
-        console.timeLog("Job(" + jobId + ") build failed", reason);
+        JobPool.get(jobId).status = "failed";
+        console.log("Job(" + jobId + ") build failed", reason);
+        Builder.builderAvailable = true;
+        Builder.notify();
       });
     });
   }

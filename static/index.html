@@ -1,0 +1,98 @@
+<title>Extension builder by ColinTree</title>
+
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script>
+function checkStatus(jobId, callback_whenDone, times = 0) {
+  if (times == 80) {
+    alert("time out! checked 80 times already");
+    return;
+  }
+  setTimeout(() => {
+    $.ajax({
+      url: "/check-status",
+      data: { jobId: jobId },
+      dataType: "json",
+      complete: xhr => {
+        if (xhr.status == 404) {
+          alert("404! maybe server is too busy to handle our request");
+          return;
+        }
+        $("#status").text(xhr.responseJSON.status);
+        if (xhr.responseJSON.status == "done") {
+          callback_whenDone();
+        } else {
+          checkStatus(jobId, callback_whenDone, times + 1);
+        }
+      }
+    });
+  }, 5000);
+}
+$(document).ready(() => {
+  $("#buildWithGithubRepo").submit(() => {
+    $.ajax({
+      url: "/build-with-github-repo",
+      data: {
+        owner: $("#owner").val(),
+        repoName: $("#repoName").val(),
+        branch: $("#branch").val()
+      },
+      dataType: "json",
+      success: json => {
+        let jobId = json["jobId"];
+        $("#jobId").text(jobId);
+        $("#status").text("submitted");
+        checkStatus(jobId, () => {
+          $("#download")
+          .attr("href", "/result?jobId=" + jobId)
+          .parent().show();
+        });
+      },
+      error: xhr => {
+        console.log(xhr.responseJSON);
+      }
+    });
+    $("[type=submit]").prop("disabled", true);
+    return false;
+  });
+  $("#previewRepo").click(() => {
+    window.open(
+        "https://github.com/" + $("#owner").val() + "/" + $("#repoName").val() + "/tree/" + $("#branch").val(),
+        "_blank").focus();
+    return false;
+  })
+});
+</script>
+
+<form id="buildWithGithubRepo">
+  <table>
+    <tbody>
+      <tr>
+        <td>Owner</td> <td><input type="text" id="owner" value="OpenSourceAIX" /></td>
+      </tr>
+      <tr>
+        <td>Repo Name</td> <td><input type="text" id="repoName" value="ColinTreeListView" /></td>
+      </tr>
+      <tr>
+        <td>Branch</td> <td><input type="text" id="branch" value="extension-builder-test" /></td>
+      </tr>
+    </tbody>
+  </table>
+  <input type="submit" />
+  <button id="previewRepo">Preview repo</button>
+</form>
+
+<p>
+  jobId: <label id="jobId"></label>
+</p>
+
+<p>
+  Status: <label id="status"></label>
+</p>
+
+<p style="display: none;">
+  <a id="download" target="_blank">Download</a>
+</p>
+
+<p>
+  <a href="https://github.com/ColinTree-bot/extension-builder" target="_blank">This project is on github!</a>
+</p>

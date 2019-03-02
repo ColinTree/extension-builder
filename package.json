@@ -16,14 +16,16 @@
   "dependencies": {
     "adm-zip": "^0.4.13",
     "fs-extra": "^7.0.1",
+    "mime-types": "^2.1.22",
     "shelljs": "^0.8.3"
   },
   "scripts": {
-    "start": "node ./build/index.js"
+    "start": "pm2 start ./build/index.js"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.32",
     "@types/fs-extra": "^5.0.5",
+    "@types/mime-types": "^2.1.0",
     "@types/shelljs": "^0.8.3"
   }
 }

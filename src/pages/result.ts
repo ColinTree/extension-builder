@@ -25,10 +25,6 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
       "Content-Type": "application/zip",
       "Content-Length": stat.size
     });
-    let readStream = fs.createReadStream(zipPath);
-    readStream.on("close", () => {
-      response.end();
-    });
-    readStream.pipe(response);
+    fs.createReadStream(zipPath).pipe(response, { end: true });
   }
 }

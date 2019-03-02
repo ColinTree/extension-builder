@@ -1,11 +1,12 @@
 import * as os from "os";
 
-export const WORKSPACE = "/usr/workspace";
+export const WORKSPACE = "/usr/workspace/";
 export const ENABLE_REPO_WHITELIST = true;
 export const PORT = 8048;
 export const TEMP_DIR = os.tmpdir() + "/extension-builder/";
 export const BUILDER_CONFIG_NAME = "builder-config.json";
 export const OUTPUT_DIR = "/usr/build-result/";
+export const STATIC_DIR = "./static/";
 
 export const EMPTY_TEMP_DIR_BEFORE_BUILD = false;
 export const MULTI_EXTENSION_BUILDING = false;
