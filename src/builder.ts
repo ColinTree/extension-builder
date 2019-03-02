@@ -2,7 +2,7 @@ import * as fs from "fs-extra";
 import * as AdmZip from "adm-zip"
 
 import exec from "./utils/exec";
-import { WORKSPACE, TEMP_DIR, MULTI_EXTENSION_BUILDING, BUILDER_CONFIG_NAME, OUTPUT_DIR } from "./config";
+import { WORKSPACE, TEMP_DIR, BUILDER_CONFIG_NAME, OUTPUT_DIR } from "./config";
 import Queue from "./utils/queue";
 
 class BuildQueue extends Queue<string> {
@@ -71,15 +71,10 @@ class Builder {
   public static notify() {
     if (Builder.builderAvailable && !buildQueue.isEmpty()) {
       Builder.builderAvailable = false;
-      if (MULTI_EXTENSION_BUILDING) {
-        console.error("Builder in wrong mode! multi-extension building is not implemented yet.");
-        // TODO: multi-extension building
-      } else {
-        let jobId = buildQueue.pop();
-        JobPool.get(jobId).status = "building";
-        Builder.cleanWorkspace()
-        .then(() => Builder.buildJob(jobId));
-      }
+      let jobId = buildQueue.pop();
+      JobPool.get(jobId).status = "building";
+      Builder.cleanWorkspace()
+      .then(() => Builder.buildJob(jobId));
     }
   }
   private static cleanWorkspace() {

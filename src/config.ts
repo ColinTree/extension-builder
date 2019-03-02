@@ -9,7 +9,6 @@ export const OUTPUT_DIR = "/usr/build-result/";
 export const STATIC_DIR = "./static/";
 
 export const EMPTY_TEMP_DIR_BEFORE_BUILD = false;
-export const MULTI_EXTENSION_BUILDING = false;
 
 interface WhiteList {
   owner: string;
