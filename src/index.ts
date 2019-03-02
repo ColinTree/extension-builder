@@ -6,6 +6,7 @@ import { PORT, TEMP_DIR, EMPTY_TEMP_DIR_BEFORE_BUILD } from "./config";
 import handleBuildWithGithubRepo from "./pages/build-with-github-repo";
 import handleBuildWithZip from "./pages/build-with-zip";
 import handleCheckStatus from "./pages/check-status";
+import handleResult from "./pages/result";
 
 export const CONTENT_TYPE_JSON = {"Content-Type": "application/json"};
 export function responseSuccess(response: http.ServerResponse, info: {}) {
@@ -26,13 +27,16 @@ function startServer() {
       switch (requestUrl.pathname) {
         case "/build-with-github-repo":
           handleBuildWithGithubRepo(request, response, params);
-          break;
+          return;
         case "/build-with-zip":
           handleBuildWithZip(request, response, params);
-          break;
+          return;
         case "/check-status":
           handleCheckStatus(request, response, params);
-          break;
+          return;
+        case "/result":
+          handleResult(request, response, params);
+          return;
       }
       responseError(response, 404, "404 Not found.");
     } catch (error) {

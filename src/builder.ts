@@ -1,4 +1,5 @@
 import * as fs from "fs-extra";
+import * as AdmZip from "adm-zip"
 
 import exec from "./utils/exec";
 import { WORKSPACE, TEMP_DIR, MULTI_EXTENSION_BUILDING, BUILDER_CONFIG_NAME, OUTPUT_DIR } from "./config";
@@ -103,12 +104,12 @@ class Builder {
       console.timeLog("Compile started: job(" + jobId + ")");
       exec("cd " + WORKSPACE + "/appinventor && ant extensions", true)
       .then(stdout => {
-        let jobOutputDir = OUTPUT_DIR + "/" + jobId
-        fs.ensureDirSync(jobOutputDir);
-        fs.emptyDirSync(jobOutputDir);
-        fs.copySync(WORKSPACE + "/appinventor/components/build/extensions", jobOutputDir);
+        let zip = new AdmZip();
+        zip.addLocalFolder(WORKSPACE + "/appinventor/components/build/extensions");
+        let zipPath = OUTPUT_DIR + "/" + jobId + ".zip";
+        zip.writeZip(zipPath);
         JobPool.get(jobId).status = "done";
-        console.timeLog("Done job(" + jobId + "): " + jobOutputDir);
+        console.timeLog("Done job(" + jobId + "): " + zipPath);
         Builder.builderAvailable = true;
         Builder.notify();
         resolve();

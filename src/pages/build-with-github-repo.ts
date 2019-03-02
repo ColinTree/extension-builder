@@ -1,8 +1,9 @@
-import { IncomingMessage, ServerResponse } from "http";
-import { URLSearchParams } from "url";
 import * as https from "https";
 import * as fs from "fs-extra";
 import * as Admzip from "adm-zip";
+
+import { IncomingMessage, ServerResponse } from "http";
+import { URLSearchParams } from "url";
 
 import { ENABLE_REPO_WHITELIST, TEMP_DIR, inWhitelist } from "../config";
 import { responseSuccess, responseError } from "../index";
