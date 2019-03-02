@@ -30,7 +30,6 @@ function handleStaticFile(response: http.ServerResponse, pathname: string): bool
     return false;
   }
   let staticDir = __dirname + "/../" + STATIC_DIR + "/";
-  console.log(staticDir + pathname);
   if (!fs.existsSync(staticDir + pathname) || fs.statSync(staticDir + pathname).isDirectory()) {
     pathname = STATIC_FILE_MAP[pathname];
     if (!fs.existsSync(staticDir + pathname) || fs.statSync(staticDir + pathname).isDirectory()) {
