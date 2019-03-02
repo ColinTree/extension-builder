@@ -29,7 +29,8 @@ function handleStaticFile(response: http.ServerResponse, pathname: string): bool
     console.log("This url seems like a crack, does not consider it is a static file.");
     return false;
   }
-  let staticDir = "../" + STATIC_DIR + "/";
+  let staticDir = __dirname + "/../" + STATIC_DIR + "/";
+  console.log(staticDir + pathname);
   if (!fs.existsSync(staticDir + pathname) || fs.statSync(staticDir + pathname).isDirectory()) {
     pathname = STATIC_FILE_MAP[pathname];
     if (!fs.existsSync(staticDir + pathname) || fs.statSync(staticDir + pathname).isDirectory()) {
@@ -37,7 +38,7 @@ function handleStaticFile(response: http.ServerResponse, pathname: string): bool
       return false;
     }
   }
-  pathname = "../" + STATIC_DIR + "/" + pathname;
+  pathname = staticDir + pathname;
   let mime = mimeTypes.lookup(pathname);
   console.log("Returning static file(" + pathname + ") mime(" + mime + ")");
   response.writeHead(200, { "Content-Type": mime!==false ? mime : "application/octet-stream" });
