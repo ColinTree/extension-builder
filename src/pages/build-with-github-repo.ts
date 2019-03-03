@@ -44,7 +44,7 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
       let commitOrTag: string;
       switch (event) {
         case "push":
-          commitOrTag = playload.head_commit;
+          commitOrTag = playload.head_commit.id;
           break;
         case "release":
           commitOrTag = playload.release.tag_name;
