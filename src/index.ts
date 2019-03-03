@@ -11,10 +11,12 @@ import handleResult from "./pages/result";
 
 export const CONTENT_TYPE_JSON = {"Content-Type": "application/json"};
 export function responseSuccess(response: http.ServerResponse, info: {}) {
+  console.log("Response end with 200: " + info);
   response.writeHead(200, CONTENT_TYPE_JSON);
   response.end(JSON.stringify(info));
 }
 export function responseError(response: http.ServerResponse, code: number, msg: string) {
+  console.log("Response end with " + code + ": " + msg);
   response.writeHead(code, CONTENT_TYPE_JSON);
   response.end(JSON.stringify({ msg: msg }));
 }
@@ -39,7 +41,7 @@ function handleStaticFile(response: http.ServerResponse, pathname: string): bool
   }
   pathname = staticDir + pathname;
   let mime = mimeTypes.lookup(pathname);
-  console.log("Returning static file(" + pathname + ") mime(" + mime + ")");
+  console.log("Response end with 200: static file(" + pathname + ") mime(" + mime + ")");
   response.writeHead(200, { "Content-Type": mime!==false ? mime : "application/octet-stream" });
   fs.createReadStream(pathname).pipe(response, { end: true });
   return true;

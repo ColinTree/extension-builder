@@ -25,7 +25,12 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
 
   } else if (request.method == "POST") {
     // webhook
-    let event = <string> request.headers["X-GitHub-Event"];
+    let indexOfEvent = request.rawHeaders.indexOf("X-GitHub-Event");
+    let event: string;
+    if (indexOfEvent != -1 && (indexOfEvent + 1) < request.rawHeaders.length) {
+      event = request.rawHeaders[indexOfEvent + 1];
+    }
+    console.log("Github event = " + event);
     if (!["push", "release"].includes(event)) {
       responseError(response, 403, "Does not support event type: " + event);
       return;
