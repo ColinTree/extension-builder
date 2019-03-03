@@ -36,7 +36,14 @@ export function addBuildQueue(jobId: string) {
 interface JobConfig {
   package: string
 }
-class Job {
+export class Job {
+
+  public static generateJobId() {
+    // fs.mkdtempSync(TEMP_DIR) => {TEMP_DIR}/{jobId}
+    let jobId = fs.mkdtempSync(TEMP_DIR + "/");
+    return jobId.substring(jobId.lastIndexOf("/") + 1);
+  }
+
   private _id: string;
   private _config: JobConfig;
 

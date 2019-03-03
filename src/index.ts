@@ -52,22 +52,27 @@ function startServer() {
       let params = new url.URLSearchParams(requestUrl.query);
       console.timeLog("Processing request: " + request.url);
       switch (requestUrl.pathname) {
-        case "/build-with-github-repo":
+        case "/build-with-github-repo": {
           handleBuildWithGithubRepo(request, response, params);
           return;
-        case "/build-with-zip":
+        }
+        case "/build-with-zip": {
           handleBuildWithZip(request, response, params);
           return;
-        case "/check-status":
+        }
+        case "/check-status": {
           handleCheckStatus(request, response, params);
           return;
-        case "/result":
+        }
+        case "/result": {
           handleResult(request, response, params);
           return;
-        default:
+        }
+        default: {
           if (handleStaticFile(response, requestUrl.pathname)) {
             return;
           }
+        }
       }
       responseError(response, 404, "404 Not found.");
     } catch (error) {

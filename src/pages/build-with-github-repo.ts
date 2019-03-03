@@ -7,62 +7,81 @@ import { URLSearchParams } from "url";
 
 import { ENABLE_REPO_WHITELIST, TEMP_DIR, inWhitelist } from "../config";
 import { responseSuccess, responseError } from "../index";
-import { addBuildQueue } from "../builder";
+import { addBuildQueue, Job } from "../builder";
 
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
   if (request.method == "GET") {
     let owner = params.get("owner");
     let repoName = params.get("repoName");
-    let branch = params.has("branch") ? params.get("branch") : "master";
-
-    console.timeLog("Job info received: repo= " + owner + "/" + repoName + " branch= " + branch);
-
-    if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repoName, branch)) {
-      // 1. white list is not enabled
-      // 2. is in the white list
-
-      // fs.mkdtempSync(TEMP_DIR) => {TEMP_DIR}/{jobId}
-      let jobId = fs.mkdtempSync(TEMP_DIR + "/");
-      jobId = jobId.substring(jobId.lastIndexOf("/") + 1);
-
-      responseSuccess(response, {
-        msg: "Build started.",
-        jobId: jobId
-      });
-
-      getZip(jobId, owner, repoName, branch)
-      .then(zipName => prepareSource(jobId, zipName))
-      .then(() => addBuildQueue(jobId))
-      .catch(reason => {
-        console.error(reason);
-      });
+    let codeNode = params.has("codeNode") ? params.get("codeNode") : "master";
+    console.timeLog("Job info received: repo= " + owner + "/" + repoName + " codeNode= " + codeNode);
+    if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repoName, codeNode)) {
+      startGithubJob(response, owner, repoName, codeNode);
       return;
     } else {
-      responseError(response, 403, "Whitelist is enabled & your repo is not in it.");
+      responseError(response, 403, "Whitelist is enabled & your repo (or codeNode) is not in it.");
       return;
     }
 
   } else if (request.method == "POST") {
     // webhook
+    let event = <string> request.headers["X-GitHub-Event"];
+    if (!["push", "release"].includes(event)) {
+      responseError(response, 403, "Does not support event type: " + event);
+      return;
+    }
     let content = "";
-
     request.on("data", chunk => {
       content += chunk;
     });
-
     request.on("end", () => {
-      responseSuccess(response, { content: content });
+      let playload = JSON.parse(content);
+      let commitOrTag: string;
+      switch (event) {
+        case "push":
+          commitOrTag = playload.head_commit;
+          break;
+        case "release":
+          commitOrTag = playload.release.tag_name;
+          break;
+      }
+      let owner = playload.repository.owner.name;
+      let repoName = playload.repository.name;
+      if (typeof(owner)!="string" || typeof(repoName)!="string" || commitOrTag) {
+        responseError(response, 403, "Cannot be built, at least one of owner, repoName or commit is not string.");
+        return;
+      }
+      if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repoName)) {
+        startGithubJob(response, owner, repoName, commitOrTag);
+        return;
+      } else {
+        responseError(response, 403, "Whitelist is enabled & your repo is not in it.");
+        return;
+      }
     });
-    return;
   }
 }
 
-function getZip(jobId: string, owner: string, repoName: string, branch: string) {
+function startGithubJob(response: ServerResponse, owner: string, repoName: string, codeNode: string) {
+  let jobId = Job.generateJobId();
+  responseSuccess(response, {
+    msg: "Build started.",
+    jobId: jobId
+  });
+  getZip(jobId, owner, repoName, codeNode)
+  .then(zipName => prepareSource(jobId, zipName))
+  .then(() => addBuildQueue(jobId))
+  .catch(reason => {
+    console.error(reason);
+  });
+}
+
+function getZip(jobId: string, owner: string, repoName: string, codeNode: string) {
   return new Promise<string>(resolve => {
-    // https://github.com/{owner}/{repoName}/archive/{branch}.zip
-    // redirecting to -> https://codeload.github.com/{owner}/{repoName}/zip/{branch}
-    let requestUrl = "https://codeload.github.com/" + owner + "/" + repoName + "/zip/" + branch;
-    let zipName = owner + "_" + repoName + "_" + branch;
+    // https://github.com/{owner}/{repoName}/archive/{codeNode}.zip
+    // redirecting to -> https://codeload.github.com/{owner}/{repoName}/zip/{codeNode}
+    let requestUrl = "https://codeload.github.com/" + owner + "/" + repoName + "/zip/" + codeNode;
+    let zipName = owner + "_" + repoName + "_" + codeNode;
     let destZipPath = TEMP_DIR + "/" + jobId + "/" + zipName + ".zip";
     https.get(requestUrl, response => {
       var stream = response.pipe(fs.createWriteStream(destZipPath));

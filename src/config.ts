@@ -13,22 +13,22 @@ export const EMPTY_TEMP_DIR_BEFORE_BUILD = false;
 interface WhiteList {
   owner: string;
   repoName: string;
-  branch: string | string[];
+  nodes: string | string[]; // Nodes includes branchs, commits and tags. Can be "*" for any
 }
 const REPO_WHITELIST: WhiteList[] = [
-  { owner: "OpenSourceAIX", repoName: "ColinTreeListView", branch: "extension-builder-test" }
+  { owner: "OpenSourceAIX", repoName: "ColinTreeListView", nodes: "extension-builder-test" }
 ];
-export function inWhitelist(owner: string, repoName: string, branch = "master") {
+export function inWhitelist(owner: string, repoName: string, codeNode = "") {
   for (let i in REPO_WHITELIST) {
     if (REPO_WHITELIST.hasOwnProperty(i)) {
       let item = REPO_WHITELIST[i];
       if (owner == item.owner && repoName == item.repoName) {
-        let acceptBranchs = item.branch;
-        if (acceptBranchs == "*") {
+        let acceptNodes = item.nodes;
+        if (acceptNodes == "*") {
           return true;
         } else {
-          acceptBranchs = typeof(acceptBranchs)=="string" ? [ acceptBranchs ] : acceptBranchs;
-          return acceptBranchs.includes(branch);
+          acceptNodes = typeof(acceptNodes)=="string" ? [ acceptNodes ] : acceptNodes;
+          return acceptNodes.includes(codeNode);
         }
       }
     }
