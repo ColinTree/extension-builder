@@ -1,25 +1,25 @@
-import * as https from "https";
 import * as fs from "fs-extra";
 import * as Admzip from "adm-zip";
+import * as Github from "@octokit/rest";
 
 import { IncomingMessage, ServerResponse } from "http";
 import { URLSearchParams } from "url";
 
 import { ENABLE_REPO_WHITELIST, TEMP_DIR, inWhitelist } from "../config";
 import { responseSuccess, responseError } from "../index";
-import { addBuildQueue, Job } from "../builder";
+import { addBuildQueue, Job, JobPool, BuildType, JobStatus } from "../builder";
 
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
   if (request.method == "GET") {
     let owner = params.get("owner");
     let repoName = params.get("repoName");
-    let codeNode = params.has("codeNode") ? params.get("codeNode") : "master";
-    console.timeLog("Job info received: repo= " + owner + "/" + repoName + " codeNode= " + codeNode);
-    if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repoName, codeNode)) {
-      startGithubJob(response, owner, repoName, codeNode);
+    let ref = params.has("ref") ? params.get("ref") : "master";
+    console.timeLog("Job info received: repo= " + owner + "/" + repoName + " ref= " + ref);
+    if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repoName, ref)) {
+      startGithubJob(response, owner, repoName, ref);
       return;
     } else {
-      responseError(response, 403, "Whitelist is enabled & your repo (or codeNode) is not in it.");
+      responseError(response, 403, "Whitelist is enabled & your repo (or ref) is not in it.");
       return;
     }
 
@@ -50,8 +50,9 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
           commitOrTag = playload.release.tag_name;
           break;
       }
-      let owner = playload.repository.owner.name;
+      let owner = playload.repository.owner.login;
       let repoName = playload.repository.name;
+      console.log("Repo = " + owner + "/" + repoName + " commitOrTag = " + commitOrTag);
       if (typeof(owner)!="string" || typeof(repoName)!="string" || commitOrTag) {
         responseError(response, 403, "Cannot be built, at least one of owner, repoName or commit is not string.");
         return;
@@ -67,51 +68,48 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
   }
 }
 
-function startGithubJob(response: ServerResponse, owner: string, repoName: string, codeNode: string) {
-  let jobId = Job.generateJobId();
+function startGithubJob(response: ServerResponse, owner: string, repoName: string, ref: string) {
+  let job = new Job();
+  let jobId = job.id;
+
+  job.attachInfo("buildType", BuildType["github-repo"]);
+  job.attachInfo("owner", owner);
+  job.attachInfo("repoName", repoName);
+  job.attachInfo("ref", ref);
+
   responseSuccess(response, {
     msg: "Build started.",
     jobId: jobId
   });
-  getZip(jobId, owner, repoName, codeNode)
-  .then(zipName => prepareSource(jobId, zipName))
-  .then(() => addBuildQueue(jobId))
-  .catch(reason => {
-    console.error(reason);
-  });
-}
 
-function getZip(jobId: string, owner: string, repoName: string, codeNode: string) {
-  return new Promise<string>(resolve => {
-    // https://github.com/{owner}/{repoName}/archive/{codeNode}.zip
-    // redirecting to -> https://codeload.github.com/{owner}/{repoName}/zip/{codeNode}
-    let requestUrl = "https://codeload.github.com/" + owner + "/" + repoName + "/zip/" + codeNode;
-    let zipName = owner + "_" + repoName + "_" + codeNode;
-    let destZipPath = TEMP_DIR + "/" + jobId + "/" + zipName + ".zip";
-    https.get(requestUrl, response => {
-      var stream = response.pipe(fs.createWriteStream(destZipPath));
-      stream.on("finish", () => {
-        console.timeLog("Downloaded: " + destZipPath);
-        resolve(zipName);
-      });
-    });
-  });
-}
-
-function prepareSource(jobId: string, zipPath: string) {
-  return new Promise<void>(resolve => {
-    let zip = new Admzip(TEMP_DIR + "/" + jobId + "/" + zipPath + ".zip");
-    let entryDir: string;
-    zip.getEntries().forEach(entry => {
-      if (!entryDir) {
-        entryDir = entry.entryName;
-      }
-    });
-    zip.extractEntryTo(entryDir, TEMP_DIR + "/" + jobId + "/rawComponentSource/");
+  // Downlaod archieve
+  new Github().repos.getArchiveLink({
+    owner: owner,
+    repo: repoName,
+    archive_format: "zipball",
+    ref: ref
+  })
+  // Load source
+  .then(archieveResponse => new Promise<string>((resolve, reject) => {
+    let zip = new Admzip(<Buffer> archieveResponse.data);
+    if (zip.getEntries().length == 0) {
+      reject("No source found in archieve downloaded.");
+      return;
+    }
+    let entryDir = zip.getEntries()[0].entryName;
+    zip.extractAllTo(TEMP_DIR + "/" + jobId + "/rawComponentSource/");
     fs.moveSync(TEMP_DIR + "/" + jobId + "/rawComponentSource/" + entryDir,
                 TEMP_DIR + "/" + jobId + "/src");
     fs.rmdirSync(TEMP_DIR + "/" + jobId + "/rawComponentSource");
     console.timeLog("Unzipped & moved to " + TEMP_DIR + "/" + jobId + "/src");
     resolve();
+  }))
+  // Add to build queue
+  .then(() =>
+    addBuildQueue(job)
+  )
+  .catch(reason => {
+    JobPool.get(jobId).status = JobStatus.failed;
+    console.error(reason);
   });
 }

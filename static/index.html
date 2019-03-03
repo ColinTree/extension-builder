@@ -34,7 +34,7 @@ $(document).ready(() => {
       data: {
         owner: $("#owner").val(),
         repoName: $("#repoName").val(),
-        codeNode: $("#codeNode").val()
+        ref: $("#ref").val()
       },
       dataType: "json",
       success: json => {
@@ -56,7 +56,7 @@ $(document).ready(() => {
   });
   $("#previewRepo").click(() => {
     window.open(
-        "https://github.com/" + $("#owner").val() + "/" + $("#repoName").val() + "/tree/" + $("#codeNode").val(),
+        "https://github.com/" + $("#owner").val() + "/" + $("#repoName").val() + "/tree/" + $("#ref").val(),
         "_blank").focus();
     return false;
   })
@@ -73,7 +73,7 @@ $(document).ready(() => {
         <td>Repo Name</td> <td><input type="text" id="repoName" value="ColinTreeListView" /></td>
       </tr>
       <tr>
-        <td>Code node(branch, commit or tag)</td> <td><input type="text" id="codeNode" value="extension-builder-test" /></td>
+        <td>Ref</td> <td><input type="text" id="ref" value="extension-builder-test" /></td>
       </tr>
     </tbody>
   </table>

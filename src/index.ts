@@ -11,9 +11,10 @@ import handleResult from "./pages/result";
 
 export const CONTENT_TYPE_JSON = {"Content-Type": "application/json"};
 export function responseSuccess(response: http.ServerResponse, info: {}) {
+  info = JSON.stringify(info);
   console.log("Response end with 200: " + info);
   response.writeHead(200, CONTENT_TYPE_JSON);
-  response.end(JSON.stringify(info));
+  response.end(info);
 }
 export function responseError(response: http.ServerResponse, code: number, msg: string) {
   console.log("Response end with " + code + ": " + msg);
