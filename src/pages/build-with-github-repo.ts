@@ -101,7 +101,7 @@ function startGithubJob(response: ServerResponse, owner: string, repoName: strin
     fs.moveSync(TEMP_DIR + "/" + jobId + "/rawComponentSource/" + entryDir,
                 TEMP_DIR + "/" + jobId + "/src");
     fs.rmdirSync(TEMP_DIR + "/" + jobId + "/rawComponentSource");
-    console.timeLog("Unzipped & moved to " + TEMP_DIR + "/" + jobId + "/src");
+    console.timeLog("Source extracted to " + TEMP_DIR + "/" + jobId + "/src");
     resolve();
   }))
   // Add to build queue
