@@ -78,7 +78,7 @@ function startGithubJob(response: ServerResponse, owner: string, repoName: strin
   job.attachInfo("ref", ref);
 
   responseSuccess(response, {
-    msg: "Build started.",
+    msg: "Job added.",
     jobId: jobId
   });
 

@@ -1,7 +1,7 @@
 import * as os from "os";
 
 export const WORKSPACE = "/usr/workspace/";
-export const ENABLE_REPO_WHITELIST = true;
+export const ENABLE_REPO_WHITELIST = false;
 export const PORT = 8048;
 export const TEMP_DIR = os.tmpdir() + "/extension-builder/";
 export const BUILDER_CONFIG_NAME = "builder-config.json";
