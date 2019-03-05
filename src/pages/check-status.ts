@@ -12,5 +12,15 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
     responseError(response, 404, "Specified job does not exist in job pool.");
     return;
   }
-  responseSuccess(response, { status: JobPool.has(jobId) ? JobPool.get(jobId).status : JobStatus.done });
+  let ret: { [key: string]: string | number } = {};
+  if (JobPool.has(jobId)) {
+    let job = JobPool.get(jobId);
+    ret.status = job.status;
+    for (let key in job.extraInfo) {
+      ret[key] = job.extraInfo[key];
+    }
+  } else {
+    ret.status = JobStatus.done;
+  }
+  responseSuccess(response, ret);
 }

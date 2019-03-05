@@ -24,7 +24,9 @@ function checkStatus(jobId, callback_whenDone, times = 0) {
         if (xhr.responseJSON.status == "done") {
           callback_whenDone();
         } else {
-          checkStatus(jobId, callback_whenDone, times + 1);
+          if (xhr.responseJSON.status != "failed") {
+            checkStatus(jobId, callback_whenDone, times + 1);
+          }
         }
       }
     });

@@ -1,7 +1,7 @@
 import * as fs from "fs-extra";
 import * as AdmZip from "adm-zip"
 
-import exec from "./utils/exec";
+import exec, { ExecError } from "./utils/exec";
 import { WORKSPACE, TEMP_DIR, BUILDER_CONFIG_NAME, OUTPUT_DIR } from "./config";
 import Queue from "./utils/queue";
 
@@ -89,8 +89,8 @@ class Builder {
       });
     })
   }
-  private static buildJob(jobId: string) {
-    return new Promise<void>(resolve => {
+  private static async buildJob(jobId: string) {
+    try {
       let job = JobPool.get(jobId);
       console.timeLog("Going to build job(" + jobId + ")");
       let config = JSON.parse(fs.readFileSync(TEMP_DIR + "/" + jobId + "/src/" + BUILDER_CONFIG_NAME, "utf8"));
@@ -100,25 +100,29 @@ class Builder {
       fs.copySync(TEMP_DIR + "/" + jobId + "/src/", targetPath);
       console.log("Copied: " + targetPath);
       console.log("Compile started: job(" + jobId + ")");
-      exec("cd " + WORKSPACE + "/appinventor && ant extensions", true)
-      .then(stdout => {
-        let zip = new AdmZip();
-        zip.addLocalFolder(WORKSPACE + "/appinventor/components/build/extensions");
-        zip.addFile("build-info.json", new Buffer(JSON.stringify(job.extraInfo)));
-        let zipPath = OUTPUT_DIR + "/" + jobId + ".zip";
-        zip.writeZip(zipPath);
-        JobPool.get(jobId).status = JobStatus.done;
-        console.log("Done job(" + jobId + "): " + zipPath);
-        Builder.builderAvailable = true;
-        Builder.notify();
-        resolve();
-      })
-      .catch(reason => {
-        JobPool.get(jobId).status = JobStatus.failed;
-        console.log("Job(" + jobId + ") build failed", reason);
-        Builder.builderAvailable = true;
-        Builder.notify();
-      });
-    });
+      
+      await exec("cd " + WORKSPACE + "/appinventor && ant extensions", true);
+      
+      let zip = new AdmZip();
+      zip.addLocalFolder(WORKSPACE + "/appinventor/components/build/extensions");
+      zip.addFile("build-info.json", new Buffer(JSON.stringify(job.extraInfo)));
+      let zipPath = OUTPUT_DIR + "/" + jobId + ".zip";
+      zip.writeZip(zipPath);
+      JobPool.get(jobId).status = JobStatus.done;
+      console.log("Done job(" + jobId + "): " + zipPath);
+      Builder.builderAvailable = true;
+      Builder.notify();
+    } catch (reason) {
+      JobPool.get(jobId).status = JobStatus.failed;
+      if (reason instanceof ExecError) {
+        let err = <ExecError> reason;
+        JobPool.get(jobId).attachInfo("failInfo", err.message + ": code(" + err.code + ") stdout:\n" + err.stdout + "\n\nstderr:\n" + err.stderr);
+      } else {
+        JobPool.get(jobId).attachInfo("failInfo", reason);
+      }
+      console.log("Job(" + jobId + ") build failed", reason);
+      Builder.builderAvailable = true;
+      Builder.notify();
+    }
   }
 }

@@ -89,7 +89,6 @@ function startGithubJob(response: ServerResponse, owner: string, repoName: strin
     archive_format: "zipball",
     ref: ref
   })
-  // Load source
   .then(archieveResponse => new Promise<string>((resolve, reject) => {
     let zip = new Admzip(<Buffer> archieveResponse.data);
     if (zip.getEntries().length == 0) {
@@ -102,14 +101,19 @@ function startGithubJob(response: ServerResponse, owner: string, repoName: strin
                 TEMP_DIR + "/" + jobId + "/src");
     fs.rmdirSync(TEMP_DIR + "/" + jobId + "/rawComponentSource");
     console.timeLog("Source extracted to " + TEMP_DIR + "/" + jobId + "/src");
-    resolve();
+    addBuildQueue(job);
   }))
-  // Add to build queue
-  .then(() =>
-    addBuildQueue(job)
-  )
   .catch(reason => {
     JobPool.get(jobId).status = JobStatus.failed;
-    console.error(reason);
+    if (Object.getPrototypeOf(reason) == Error.prototype) {
+      let err = <Error> reason;
+      JobPool.get(jobId).attachInfo("failInfo",
+          err.name == "HttpError"
+          ? "Cannot load source from github, please check if the ref exists in the specified repo."
+          : err.message);
+    } else {
+      JobPool.get(jobId).attachInfo("failInfo", reason.toString());
+    }
+    console.log("Fail prepare source of job(" + jobId + ")", reason);
   });
 }

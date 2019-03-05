@@ -13,8 +13,28 @@ export default (command: string, silent = false) => {
       if (code == 0) {
         resolve(stdout);
       } else {
-        reject([code, stderr]);
+        reject(new ExecError(code, stdout, stderr));
       }
     });
   });
+}
+export class ExecError extends Error {
+  private _code: number;
+  private _stdout: string;
+  private _stderr: string;
+  constructor(code: number, stdout: string, stderr: string) {
+    super("Command executing error occured");
+    this._code = code;
+    this._stdout = stdout;
+    this._stderr = stderr;
+  }
+  get code() {
+    return this._code;
+  }
+  get stdout() {
+    return this._stdout;
+  }
+  get stderr() {
+    return this._stderr;
+  }
 }
