@@ -24,7 +24,9 @@ function checkStatus(jobId, callback_whenDone, times = 0) {
         if (xhr.responseJSON.status == "done") {
           callback_whenDone();
         } else {
-          if (xhr.responseJSON.status != "failed") {
+          if (xhr.responseJSON.status == "failed") {
+            $("#output").text(xhr.responseJSON.failInfo);
+          } else {
             checkStatus(jobId, callback_whenDone, times + 1);
           }
         }
@@ -132,6 +134,8 @@ $(document).ready(() => {
 <p>
   Status: <label id="status"></label>
 </p>
+
+<pre id="output"></pre>
 
 <p style="display: none;">
   <a id="download" target="_blank">Download</a>

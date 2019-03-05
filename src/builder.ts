@@ -116,7 +116,10 @@ class Builder {
       JobPool.get(jobId).status = JobStatus.failed;
       if (reason instanceof ExecError) {
         let err = <ExecError> reason;
-        JobPool.get(jobId).attachInfo("failInfo", err.message + ": code(" + err.code + ") stdout:\n" + err.stdout + "\n\nstderr:\n" + err.stderr);
+        // Notice that it would not work on windows
+        let stdout = err.stdout.split(WORKSPACE).join("%SERVER_WORKSPACE%/");
+        let stderr = err.stderr.split(WORKSPACE).join("%SERVER_WORKSPACE%/");
+        JobPool.get(jobId).attachInfo("failInfo", err.message + ": code(" + err.code + ") stdout:\n" + stdout + "\n\nstderr:\n" + stderr);
       } else {
         JobPool.get(jobId).attachInfo("failInfo", reason);
       }
