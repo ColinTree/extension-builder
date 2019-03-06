@@ -11,10 +11,13 @@ import handleResult from "./pages/result";
 
 export const CONTENT_TYPE_JSON = {"Content-Type": "application/json"};
 export function responseSuccess(response: http.ServerResponse, info: {}) {
+  info = JSON.stringify(info);
+  console.log("Response end with 200: " + info);
   response.writeHead(200, CONTENT_TYPE_JSON);
-  response.end(JSON.stringify(info));
+  response.end(info);
 }
 export function responseError(response: http.ServerResponse, code: number, msg: string) {
+  console.log("Response end with " + code + ": " + msg);
   response.writeHead(code, CONTENT_TYPE_JSON);
   response.end(JSON.stringify({ msg: msg }));
 }
@@ -39,7 +42,7 @@ function handleStaticFile(response: http.ServerResponse, pathname: string): bool
   }
   pathname = staticDir + pathname;
   let mime = mimeTypes.lookup(pathname);
-  console.log("Returning static file(" + pathname + ") mime(" + mime + ")");
+  console.log("Response end with 200: static file(" + pathname + ") mime(" + mime + ")");
   response.writeHead(200, { "Content-Type": mime!==false ? mime : "application/octet-stream" });
   fs.createReadStream(pathname).pipe(response, { end: true });
   return true;
@@ -52,22 +55,27 @@ function startServer() {
       let params = new url.URLSearchParams(requestUrl.query);
       console.timeLog("Processing request: " + request.url);
       switch (requestUrl.pathname) {
-        case "/build-with-github-repo":
+        case "/build-with-github-repo": {
           handleBuildWithGithubRepo(request, response, params);
           return;
-        case "/build-with-zip":
+        }
+        case "/build-with-zip": {
           handleBuildWithZip(request, response, params);
           return;
-        case "/check-status":
+        }
+        case "/check-status": {
           handleCheckStatus(request, response, params);
           return;
-        case "/result":
+        }
+        case "/result": {
           handleResult(request, response, params);
           return;
-        default:
+        }
+        default: {
           if (handleStaticFile(response, requestUrl.pathname)) {
             return;
           }
+        }
       }
       responseError(response, 404, "404 Not found.");
     } catch (error) {

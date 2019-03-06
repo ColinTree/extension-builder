@@ -1,20 +1,29 @@
-import { exec } from "shelljs";
+import { exec, ExecOutputReturnValue } from "shelljs";
 
-/**
- * Execute a command with promise returns
- * @param command
- * @returns a Promise.
- *    With then(stdout => {execute when result code is 0})
- *    and catch((response = [code, stderr]) => {execute when code other than 0 returned})
- */
-export default (command: string, silent = false) => {
-  return new Promise<string>((resolve, reject) => {
-    exec(command, { silent: silent }, (code, stdout, stderr) => {
-      if (code == 0) {
-        resolve(stdout);
-      } else {
-        reject([code, stderr]);
-      }
-    });
+export default async (command: string, silent = false) => {
+  let result = <ExecOutputReturnValue> exec(command, {
+    silent: silent,
+    async: false // ensure it returns ExecOutputReturnValue
   });
+  if (result.code == 0) {
+    return result.stdout;
+  } else {
+    throw new ExecError(result);
+  }
+}
+export class ExecError extends Error {
+  private _execOutputReturnValue: ExecOutputReturnValue;
+  constructor(execOutputReturnValue: ExecOutputReturnValue) {
+    super("Command executing error occured");
+    this._execOutputReturnValue = execOutputReturnValue;
+  }
+  get code() {
+    return this._execOutputReturnValue.code;
+  }
+  get stdout() {
+    return this._execOutputReturnValue.stdout;
+  }
+  get stderr() {
+    return this._execOutputReturnValue.stderr;
+  }
 }

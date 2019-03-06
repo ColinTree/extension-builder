@@ -16,12 +16,19 @@ function checkStatus(jobId, callback_whenDone, times = 0) {
         if (xhr.status == 404) {
           alert("404! maybe server is too busy to handle our request");
           return;
+        } else if (xhr.status != 200) {
+          alert(xhr.status + "!" + xhr.responseJSON.msg);
+          return;
         }
         $("#status").text(xhr.responseJSON.status);
         if (xhr.responseJSON.status == "done") {
           callback_whenDone();
         } else {
-          checkStatus(jobId, callback_whenDone, times + 1);
+          if (xhr.responseJSON.status == "failed") {
+            $("#output").text(xhr.responseJSON.failInfo);
+          } else {
+            checkStatus(jobId, callback_whenDone, times + 1);
+          }
         }
       }
     });
@@ -34,7 +41,7 @@ $(document).ready(() => {
       data: {
         owner: $("#owner").val(),
         repoName: $("#repoName").val(),
-        branch: $("#branch").val()
+        ref: $("#ref").val()
       },
       dataType: "json",
       success: json => {
@@ -49,6 +56,36 @@ $(document).ready(() => {
       },
       error: xhr => {
         console.log(xhr.responseJSON);
+        alert(xhr.responseJSON);
+      }
+    });
+    $("[type=submit]").prop("disabled", true);
+    return false;
+  });
+  $("#buildWithZip").submit(() => {
+    let formData = new FormData();
+    formData.append("source", $("#zip")[0].files[0]);
+    $.ajax({
+      url: "/build-with-zip",
+      type: "POST",
+      cache: false,
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: "json",
+      success: json => {
+        let jobId = json["jobId"];
+        $("#jobId").text(jobId);
+        $("#status").text("submitted");
+        checkStatus(jobId, () => {
+          $("#download")
+          .attr("href", "/result?jobId=" + jobId)
+          .parent().show();
+        });
+      },
+      error: xhr => {
+        console.log(xhr.responseJSON);
+        alert(xhr.responseJSON);
       }
     });
     $("[type=submit]").prop("disabled", true);
@@ -56,7 +93,7 @@ $(document).ready(() => {
   });
   $("#previewRepo").click(() => {
     window.open(
-        "https://github.com/" + $("#owner").val() + "/" + $("#repoName").val() + "/tree/" + $("#branch").val(),
+        "https://github.com/" + $("#owner").val() + "/" + $("#repoName").val() + "/tree/" + $("#ref").val(),
         "_blank").focus();
     return false;
   })
@@ -73,13 +110,22 @@ $(document).ready(() => {
         <td>Repo Name</td> <td><input type="text" id="repoName" value="ColinTreeListView" /></td>
       </tr>
       <tr>
-        <td>Branch</td> <td><input type="text" id="branch" value="extension-builder-test" /></td>
+        <td>Ref</td> <td><input type="text" id="ref" value="extension-builder-test" /></td>
       </tr>
     </tbody>
   </table>
   <input type="submit" />
   <button id="previewRepo">Preview repo</button>
 </form>
+
+<hr> <!-- FILE UPLOAD -->
+
+<form id="buildWithZip" enctype="multipart/form-data">
+  <input id="zip" type="file" />
+  <input type="submit" />
+</form>
+
+<hr>
 
 <p>
   jobId: <label id="jobId"></label>
@@ -88,6 +134,8 @@ $(document).ready(() => {
 <p>
   Status: <label id="status"></label>
 </p>
+
+<pre id="output"></pre>
 
 <p style="display: none;">
   <a id="download" target="_blank">Download</a>
