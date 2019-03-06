@@ -1,4 +1,3 @@
-import * as fs from "fs-extra";
 import * as AdmZip from "adm-zip";
 import * as formidable from "formidable"
 
@@ -7,7 +6,7 @@ import { URLSearchParams } from "url";
 
 import { responseError, responseSuccess } from "../index";
 import { ENABLE_REPO_WHITELIST, TEMP_DIR } from "../config";
-import { Job, addBuildQueue, BuildType } from "../builder";
+import { Job, pushBuildQueue } from "../builder";
 
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
   if (ENABLE_REPO_WHITELIST) {
@@ -15,9 +14,8 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
 
   } else {
     let job = new Job();
+    job.attachInfo("buildType", "source-upload");
 
-    job.attachInfo("buildType", BuildType["source-upload"]);
-    
     let type = request.headers["content-type"] || "";
     if (!type.includes("multipart/form-data")) {
       console.log("Request content type: " + type);
@@ -35,7 +33,7 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
       }
       let zip = new AdmZip(file.path);
       zip.extractAllTo(jobDir + "/src/");
-      addBuildQueue(job);
+      pushBuildQueue(job);
       responseSuccess(response, {
         msg: "Job added.",
         jobId: job.id

@@ -1,9 +1,9 @@
+import * as fs from "fs-extra";
 import { IncomingMessage, ServerResponse } from "http";
 import { URLSearchParams } from "url";
 
 import { responseSuccess, responseError } from "../index";
-import { JobPool, JobStatus } from "../builder";
-import * as fs from "fs-extra";
+import { JobPool } from "../builder";
 import { OUTPUT_DIR } from "../config";
 
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
@@ -20,7 +20,7 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
       ret[key] = job.extraInfo[key];
     }
   } else {
-    ret.status = JobStatus.done;
+    ret.status = "done";
   }
   responseSuccess(response, ret);
 }

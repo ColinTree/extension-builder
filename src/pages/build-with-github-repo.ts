@@ -7,7 +7,7 @@ import { URLSearchParams } from "url";
 
 import { ENABLE_REPO_WHITELIST, TEMP_DIR, inWhitelist } from "../config";
 import { responseSuccess, responseError } from "../index";
-import { addBuildQueue, Job, JobPool, BuildType, JobStatus } from "../builder";
+import { pushBuildQueue, Job, JobPool } from "../builder";
 
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
   if (request.method == "GET") {
@@ -23,8 +23,7 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
       return;
     }
 
-  } else if (request.method == "POST") {
-    // webhook
+  } else if (request.method == "POST") { // webhook
     let indexOfEvent = request.rawHeaders.indexOf("X-GitHub-Event");
     let event: string;
     if (indexOfEvent != -1 && (indexOfEvent + 1) < request.rawHeaders.length) {
@@ -68,11 +67,11 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
   }
 }
 
-function startGithubJob(response: ServerResponse, owner: string, repoName: string, ref: string) {
+async function startGithubJob(response: ServerResponse, owner: string, repoName: string, ref: string) {
   let job = new Job();
   let jobId = job.id;
 
-  job.attachInfo("buildType", BuildType["github-repo"]);
+  job.attachInfo("buildType", "github-repo");
   job.attachInfo("owner", owner);
   job.attachInfo("repoName", repoName);
   job.attachInfo("ref", ref);
@@ -82,38 +81,37 @@ function startGithubJob(response: ServerResponse, owner: string, repoName: strin
     jobId: jobId
   });
 
-  // Downlaod archieve
-  new Github().repos.getArchiveLink({
-    owner: owner,
-    repo: repoName,
-    archive_format: "zipball",
-    ref: ref
-  })
-  .then(archieveResponse => new Promise<string>((resolve, reject) => {
-    let zip = new Admzip(<Buffer> archieveResponse.data);
-    if (zip.getEntries().length == 0) {
-      reject("No source found in archieve downloaded.");
-      return;
-    }
-    let entryDir = zip.getEntries()[0].entryName;
-    zip.extractAllTo(TEMP_DIR + "/" + jobId + "/rawComponentSource/");
-    fs.moveSync(TEMP_DIR + "/" + jobId + "/rawComponentSource/" + entryDir,
-                TEMP_DIR + "/" + jobId + "/src");
-    fs.rmdirSync(TEMP_DIR + "/" + jobId + "/rawComponentSource");
-    console.timeLog("Source extracted to " + TEMP_DIR + "/" + jobId + "/src");
-    addBuildQueue(job);
-  }))
-  .catch(reason => {
-    JobPool.get(jobId).status = JobStatus.failed;
-    if (Object.getPrototypeOf(reason) == Error.prototype) {
-      let err = <Error> reason;
-      JobPool.get(jobId).attachInfo("failInfo",
-          err.name == "HttpError"
-          ? "Cannot load source from github, please check if the ref exists in the specified repo."
-          : err.message);
-    } else {
-      JobPool.get(jobId).attachInfo("failInfo", reason.toString());
-    }
-    console.log("Fail prepare source of job(" + jobId + ")", reason);
-  });
+  // Downlaod archive
+  let archiveResponse: Github.Response<Github.ReposGetArchiveLinkResponse>;
+  try {
+    archiveResponse = await new Github().repos.getArchiveLink({
+      owner: owner,
+      repo: repoName,
+      archive_format: "zipball",
+      ref: ref
+    });
+  } catch (e) {
+    let err = <Error> e;
+    JobPool.get(jobId).status = "failed";
+    JobPool.get(jobId).attachInfo("failInfo",
+        err.name == "HttpError"
+        ? "Cannot load source from github, please check if the ref exists in the specified repo."
+        : err.message);
+    console.log("Fail prepare source of job(" + jobId + ")", e);
+    return;
+  }
+
+  // Extract responding archive
+  let zip = new Admzip(<Buffer> archiveResponse.data);
+  if (zip.getEntries().length == 0) {
+    throw "No source found in archive downloaded.";
+  }
+  let entryDir = zip.getEntries()[0].entryName;
+  zip.extractAllTo(TEMP_DIR + "/" + jobId + "/rawComponentSource/");
+  fs.moveSync(TEMP_DIR + "/" + jobId + "/rawComponentSource/" + entryDir,
+              TEMP_DIR + "/" + jobId + "/src");
+  fs.rmdirSync(TEMP_DIR + "/" + jobId + "/rawComponentSource");
+  console.timeLog("Source extracted to " + TEMP_DIR + "/" + jobId + "/src");
+
+  pushBuildQueue(job);
 }
