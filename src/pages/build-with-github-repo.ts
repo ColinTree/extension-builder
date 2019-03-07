@@ -57,7 +57,7 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
         return;
       }
       if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repo)) {
-        startGithubJob(response, owner, repo, commitOrTag);
+        startGithubJob(response, owner, repo, commitOrTag, event == "release");
         return;
       } else {
         responseError(response, 403, "Whitelist is enabled & your repo is not in it.");
@@ -67,7 +67,7 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
   }
 }
 
-async function startGithubJob(response: ServerResponse, owner: string, repo: string, ref: string) {
+async function startGithubJob(response: ServerResponse, owner: string, repo: string, ref: string, isRelease = false) {
   let job = new Job();
   let jobId = job.id;
 
@@ -75,6 +75,7 @@ async function startGithubJob(response: ServerResponse, owner: string, repo: str
   job.attachInfo("owner", owner);
   job.attachInfo("repo", repo);
   job.attachInfo("ref", ref);
+  job.attachInfo("isRelease", isRelease);
 
   responseSuccess(response, {
     msg: "Job added.",
@@ -86,12 +87,8 @@ async function startGithubJob(response: ServerResponse, owner: string, repo: str
   try {
     archiveResponse = await new Github().repos.getArchiveLink({ owner, repo, ref, archive_format: "zipball" });
   } catch (e) {
-    let err = <Error> e;
     JobPool.get(jobId).status = "failed";
-    JobPool.get(jobId).attachInfo("failInfo",
-        err.name == "HttpError"
-        ? "Cannot load source from github, please check if the ref exists in the specified repo."
-        : err.message);
+    JobPool.get(jobId).attachInfo("failInfo", "Cannot load source from github, please check if the ref or repo exists.");
     console.log("Fail prepare source of job(" + jobId + ")", e);
     return;
   }

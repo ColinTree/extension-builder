@@ -1,9 +1,10 @@
 import * as os from "os";
 import * as fs from "fs-extra";
+import * as Github from "@octokit/rest";
 
 // load default config & custom config
-let DEF_CONF = require("../eb-config.default.json");
-let CUST_CONF = fs.existsSync("../eb-config.json") ? require("../eb-config.json") : {};
+const DEF_CONF = require("../eb-config.default.json");
+const CUST_CONF = fs.existsSync("../eb-config.json") ? require("../eb-config.json") : {};
 
 export const PORT =
     CUST_CONF["port"] ? CUST_CONF["port"] : DEF_CONF["port"];
@@ -50,4 +51,44 @@ export function inWhitelist(owner: string, repo: string, coderef = "") {
     }
   }
   return false;
+}
+
+export const GITHUB_AUTH_TYPE: "none" | "basic" | "token" =
+    CUST_CONF["github-auth-type"] ? CUST_CONF["github-auth-type"] : "none";
+const GITHUB_LOGGER = {
+  debug: (message: string, info?: object) => {
+    console.log("[github.debug] " + message);
+  },
+  info: (message: string, info?: object) => {
+    console.log("[github.info] " + message);
+  },
+  warn: (message: string, info?: object) => {
+    console.log("[github.warn] " + message);
+  },
+  error: (message: string, info?: object) => {
+    console.log("[github.error] " + message);
+  }
+};
+export function AuthGithub() {
+  let auth;
+  switch (GITHUB_AUTH_TYPE) {
+    case "basic": {
+      console.log("Login github with username & password");
+      auth = {
+        username: CUST_CONF["github-auth-username"],
+        password: CUST_CONF["github-auth-password"],
+        on2fa: async () => { throw "2FA required, extension-builder dont support this yet." }
+      }
+      break;
+    }
+    case "token": {
+      console.log("Login github with token");
+      auth = "token " + CUST_CONF["github-auth-token"];
+      break;
+    }
+  }
+  return new Github({
+    auth,
+    log: GITHUB_LOGGER
+  });
 }

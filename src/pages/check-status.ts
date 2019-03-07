@@ -12,7 +12,7 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
     responseError(response, 404, "Specified job does not exist.");
     return;
   }
-  let ret: { [key: string]: string | number } = {};
+  let ret: { [key: string]: string | number | boolean } = {};
   if (JobPool.has(jobId)) {
     let job = JobPool.get(jobId);
     ret.status = job.status;

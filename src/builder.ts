@@ -2,7 +2,7 @@ import * as fs from "fs-extra";
 import * as AdmZip from "adm-zip"
 
 import exec, { ExecError } from "./utils/exec";
-import { WORKSPACE, TEMP_DIR, BUILDER_CONFIG_NAME, OUTPUT_DIR } from "./config";
+import { WORKSPACE, TEMP_DIR, BUILDER_CONFIG_NAME, OUTPUT_DIR, AuthGithub } from "./config";
 import Queue from "./utils/queue";
 
 export class JobPool {
@@ -18,9 +18,13 @@ export class JobPool {
   }
 }
 type JobStatus = "preparing" | "waiting" | "building" | "done" | "failed";
+interface JobConfig {
+  package: string
+  pushToRelease: boolean
+}
 export class Job {
   private _id: string;
-  private _extraInfo: { [key: string]: string | number } = {};
+  private _extraInfo: { [key: string]: string | number | boolean } = {};
 
   get id() { return this._id; }
   get extraInfo() { return this._extraInfo; }
@@ -36,7 +40,7 @@ export class Job {
     JobPool.add(this);
   }
 
-  public attachInfo(key: string, value: string | number) {
+  public attachInfo(key: string, value: string | number | boolean) {
     this._extraInfo[key] = value;
   }
 }
@@ -77,7 +81,7 @@ class Builder {
 
     let job = JobPool.get(jobId);
     console.timeLog("Going to build job(" + jobId + ")");
-    let config = JSON.parse(fs.readFileSync(TEMP_DIR + "/" + jobId + "/src/" + BUILDER_CONFIG_NAME, "utf8"));
+    let config: JobConfig = JSON.parse(fs.readFileSync(TEMP_DIR + "/" + jobId + "/src/" + BUILDER_CONFIG_NAME, "utf8"));
     let targetPath = WORKSPACE + "/appinventor/components/src/" + config.package.split(".").join("/") + "/";
     fs.ensureDirSync(targetPath);
     fs.emptyDirSync(targetPath);
@@ -109,7 +113,56 @@ class Builder {
     JobPool.get(jobId).status = "done";
     console.log("Done job(" + jobId + "): " + zipPath);
 
+    if (job.extraInfo.isRelease === true || config.pushToRelease === true) {
+      ResultReleaser.tryAttachToRelease(job);
+    }
+
     Builder.builderAvailable = true;
     Builder.notify();
+  }
+}
+
+export class ResultReleaser {
+  public static async tryAttachToRelease(job: Job) {
+    let owner = <string> job.extraInfo.owner;
+    let repo = <string> job.extraInfo.repo;
+    let tag = <string> job.extraInfo.ref;
+    let fullTagInfo = "tag(" + tag + ") in repo(" + owner + "/" + repo + ")";
+
+    if (!owner || !repo || !tag) {
+      console.log("Failed release build result, repo info is imcompleted.");
+      return;
+    }
+
+    let github = AuthGithub();
+
+    let releaseUrlResult;
+    try {
+      releaseUrlResult = await github.repos.getReleaseByTag({ owner, repo, tag });
+    } catch (e) {
+      console.log("Failed finding " + fullTagInfo);
+      return;
+    }
+
+    let name = "binary.zip";
+    let label = "Auto-Build result by extension-builder";
+    let file = fs.readFileSync(OUTPUT_DIR + "/" + job.id + ".zip");
+    try {
+      await github.repos.uploadReleaseAsset({
+        headers: {
+          "content-length": file.length,
+          "content-type": "application/zip"
+        },
+        url: releaseUrlResult.data.upload_url,
+        name, label, file 
+      });
+    } catch (e) {
+      let err = <HttpError> e;
+      if (err.status == 404) {
+        console.log("Failed upload binary to " + fullTagInfo + ", may because authorization failed or permission not granted.");
+      } else if (err.status == 422) {
+        console.log("Failed upload binary to " + fullTagInfo + ", may because asset had been uploaded.");
+      }
+    }
   }
 }
