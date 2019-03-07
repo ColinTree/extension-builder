@@ -4,14 +4,14 @@ import { IncomingMessage, ServerResponse } from "http";
 import { URLSearchParams } from "url";
 
 import { JobPool } from "../builder";
-import { OUTPUT_DIR } from "../config";
+import { OUTPUT_DIR, CHECK_JOBPOOL_RESULTS_ONLY } from "../config";
 
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
   let jobId = params.get("jobId");
-  if (!JobPool.has(jobId) && !fs.existsSync(OUTPUT_DIR + "/" + jobId + ".zip")) {
+  if (!JobPool.has(jobId) && !CHECK_JOBPOOL_RESULTS_ONLY && !fs.existsSync(OUTPUT_DIR + "/" + jobId + ".zip")) {
     console.log("Response end with 404: job not exist");
     response.writeHead(404);
-    response.end("Job does not exist.");
+    response.end("Job not exist.");
     return;
   }
   let status = JobPool.has(jobId) ? JobPool.get(jobId).status : "done";

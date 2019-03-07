@@ -1,6 +1,6 @@
 {
   "name": "extension-builder",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -22,7 +22,7 @@
     "shelljs": "^0.8.3"
   },
   "scripts": {
-    "start": "pm2-runtime start ./build/index.js"
+    "start": "cd build && pm2-runtime start index.js"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.32",

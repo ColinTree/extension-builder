@@ -12,11 +12,11 @@ import { pushBuildQueue, Job, JobPool } from "../builder";
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
   if (request.method == "GET") {
     let owner = params.get("owner");
-    let repoName = params.get("repoName");
+    let repo = params.get("repo");
     let ref = params.has("ref") ? params.get("ref") : "master";
-    console.timeLog("Job info received: repo= " + owner + "/" + repoName + " ref= " + ref);
-    if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repoName, ref)) {
-      startGithubJob(response, owner, repoName, ref);
+    console.timeLog("Job info received: repo= " + owner + "/" + repo + " ref= " + ref);
+    if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repo, ref)) {
+      startGithubJob(response, owner, repo, ref);
       return;
     } else {
       responseError(response, 403, "Whitelist is enabled & your repo (or ref) is not in it.");
@@ -34,30 +34,32 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
       responseError(response, 403, "Does not support event type: " + event);
       return;
     }
+
     let content = "";
     request.on("data", chunk => {
       content += chunk;
     });
     request.on("end", () => {
       let playload = JSON.parse(content);
-      let commitOrTag: string;
-      switch (event) {
-        case "push":
-          commitOrTag = playload.head_commit.id;
-          break;
-        case "release":
-          commitOrTag = playload.release.tag_name;
-          break;
-      }
-      let owner = playload.repository.owner.login;
-      let repoName = playload.repository.name;
-      console.log("Repo = " + owner + "/" + repoName + " commitOrTag = " + commitOrTag);
-      if (typeof(owner)!="string" || typeof(repoName)!="string" || commitOrTag) {
-        responseError(response, 403, "Cannot be built, at least one of owner, repoName or commit is not string.");
+      if (event == "push" && playload.ref.indexOf("refs/heads/") == -1) {
+        responseSuccess(response, "Build ignored since this is not a push of /refs/heads/");
         return;
       }
-      if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repoName)) {
-        startGithubJob(response, owner, repoName, commitOrTag);
+      let commitOrTag: string;
+      if (event == "push") {
+        commitOrTag = playload.head_commit.id;
+      } else if (event == "release") {
+        commitOrTag = playload.release.tag_name;
+      }
+      let owner = playload.repository.owner.login;
+      let repo = playload.repository.name;
+      console.log("Repo = " + owner + "/" + repo + " commitOrTag = " + commitOrTag);
+      if (typeof(owner)!="string" || typeof(repo)!="string" || typeof(commitOrTag)!="string") {
+        responseError(response, 403, "Cannot be built, at least one of owner, repo or commit is not string.");
+        return;
+      }
+      if (!ENABLE_REPO_WHITELIST || inWhitelist(owner, repo)) {
+        startGithubJob(response, owner, repo, commitOrTag, event == "release");
         return;
       } else {
         responseError(response, 403, "Whitelist is enabled & your repo is not in it.");
@@ -67,14 +69,15 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
   }
 }
 
-async function startGithubJob(response: ServerResponse, owner: string, repoName: string, ref: string) {
+async function startGithubJob(response: ServerResponse, owner: string, repo: string, ref: string, isRelease = false) {
   let job = new Job();
   let jobId = job.id;
 
   job.attachInfo("buildType", "github-repo");
   job.attachInfo("owner", owner);
-  job.attachInfo("repoName", repoName);
+  job.attachInfo("repo", repo);
   job.attachInfo("ref", ref);
+  job.attachInfo("isRelease", isRelease);
 
   responseSuccess(response, {
     msg: "Job added.",
@@ -84,19 +87,10 @@ async function startGithubJob(response: ServerResponse, owner: string, repoName:
   // Downlaod archive
   let archiveResponse: Github.Response<Github.ReposGetArchiveLinkResponse>;
   try {
-    archiveResponse = await new Github().repos.getArchiveLink({
-      owner: owner,
-      repo: repoName,
-      archive_format: "zipball",
-      ref: ref
-    });
+    archiveResponse = await new Github().repos.getArchiveLink({ owner, repo, ref, archive_format: "zipball" });
   } catch (e) {
-    let err = <Error> e;
     JobPool.get(jobId).status = "failed";
-    JobPool.get(jobId).attachInfo("failInfo",
-        err.name == "HttpError"
-        ? "Cannot load source from github, please check if the ref exists in the specified repo."
-        : err.message);
+    JobPool.get(jobId).attachInfo("failInfo", "Cannot load source from github, please check if the ref or repo exists.");
     console.log("Fail prepare source of job(" + jobId + ")", e);
     return;
   }

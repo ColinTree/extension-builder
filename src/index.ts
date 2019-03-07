@@ -3,14 +3,17 @@ import * as url from "url";
 import * as fs from "fs-extra";
 import * as mimeTypes from "mime-types"
 
-import { PORT, TEMP_DIR, EMPTY_TEMP_DIR_BEFORE_BUILD, STATIC_DIR } from "./config";
+import { PORT, TEMP_DIR, KEEP_LEGACY_RESULTS, STATIC_DIR } from "./config";
 import handleBuildWithGithubRepo from "./pages/build-with-github-repo";
 import handleBuildWithZip from "./pages/build-with-zip";
 import handleCheckStatus from "./pages/check-status";
 import handleResult from "./pages/result";
 
 export const CONTENT_TYPE_JSON = {"Content-Type": "application/json"};
-export function responseSuccess(response: http.ServerResponse, info: {}) {
+export function responseSuccess(response: http.ServerResponse, info: object | string) {
+  if (typeof(info) == "string") {
+    info = { msg: info };
+  }
   info = JSON.stringify(info);
   console.log("Response end with 200: " + info);
   response.writeHead(200, CONTENT_TYPE_JSON);
@@ -19,7 +22,7 @@ export function responseSuccess(response: http.ServerResponse, info: {}) {
 export function responseError(response: http.ServerResponse, code: number, msg: string) {
   console.log("Response end with " + code + ": " + msg);
   response.writeHead(code, CONTENT_TYPE_JSON);
-  response.end(JSON.stringify({ msg: msg }));
+  response.end(JSON.stringify({ msg }));
 }
 
 const STATIC_FILE_MAP: { [key: string]: string; } = {
@@ -90,7 +93,7 @@ function startServer() {
 console.timeLog = (msg: string) => console.log("[" + new Date().toLocaleString() + "] " + msg);
 
 fs.ensureDirSync(TEMP_DIR);
-if (EMPTY_TEMP_DIR_BEFORE_BUILD) {
+if (!KEEP_LEGACY_RESULTS) {
   fs.emptyDirSync(TEMP_DIR);
 }
 startServer();
