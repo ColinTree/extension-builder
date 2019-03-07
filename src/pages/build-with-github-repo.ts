@@ -41,7 +41,7 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
     });
     request.on("end", () => {
       let playload = JSON.parse(content);
-      if (event == "push" && playload.ref.indexOf("/refs/heads/") == -1) {
+      if (event == "push" && playload.ref.indexOf("refs/heads/") == -1) {
         responseSuccess(response, "Build ignored since this is not a push of /refs/heads/");
         return;
       }
