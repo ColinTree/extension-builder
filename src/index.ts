@@ -3,7 +3,7 @@ import * as url from "url";
 import * as fs from "fs-extra";
 import * as mimeTypes from "mime-types"
 
-import { PORT, TEMP_DIR, EMPTY_TEMP_DIR_BEFORE_BUILD, STATIC_DIR } from "./config";
+import { PORT, TEMP_DIR, KEEP_LEGACY_RESULTS, STATIC_DIR } from "./config";
 import handleBuildWithGithubRepo from "./pages/build-with-github-repo";
 import handleBuildWithZip from "./pages/build-with-zip";
 import handleCheckStatus from "./pages/check-status";
@@ -90,7 +90,7 @@ function startServer() {
 console.timeLog = (msg: string) => console.log("[" + new Date().toLocaleString() + "] " + msg);
 
 fs.ensureDirSync(TEMP_DIR);
-if (EMPTY_TEMP_DIR_BEFORE_BUILD) {
+if (!KEEP_LEGACY_RESULTS) {
   fs.emptyDirSync(TEMP_DIR);
 }
 startServer();

@@ -2,7 +2,7 @@
   "port": 8048,
 
   "builder-config-name": "builder-config.json",
-  "empty-temp-dir-before-build": false,
+  "keep-legacy-results": true,
   "output-dir": "/usr/build-result/",
   "static-dir": "./static/",
   "temp-dir": "%SYSTEM_TEMP%/extension-builder/",

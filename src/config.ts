@@ -10,8 +10,8 @@ export const PORT =
 
 export const BUILDER_CONFIG_NAME =
     CUST_CONF["builder-config-name"] ? CUST_CONF["builder-config-name"] : DEF_CONF["builder-config-name"];
-export const EMPTY_TEMP_DIR_BEFORE_BUILD =
-    CUST_CONF["empty-temp-dir-before-build"] ? CUST_CONF["empty-temp-dir-before-build"] : DEF_CONF["empty-temp-dir-before-build"];
+export const KEEP_LEGACY_RESULTS =
+    CUST_CONF["keep-legacy-results"] ? CUST_CONF["keep-legacy-results"] : DEF_CONF["keep-legacy-results"];
 export const OUTPUT_DIR =
     CUST_CONF["output-dir"] ? CUST_CONF["output-dir"] : DEF_CONF["output-dir"];
 export const STATIC_DIR =
