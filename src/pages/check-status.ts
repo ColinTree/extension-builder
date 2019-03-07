@@ -4,12 +4,12 @@ import { URLSearchParams } from "url";
 
 import { responseSuccess, responseError } from "../index";
 import { JobPool } from "../builder";
-import { OUTPUT_DIR } from "../config";
+import { OUTPUT_DIR, CHECK_JOBPOOL_RESULTS_ONLY } from "../config";
 
 export default (request: IncomingMessage, response: ServerResponse, params: URLSearchParams) => {
   let jobId = params.get("jobId");
-  if (!JobPool.has(jobId) && !fs.existsSync(OUTPUT_DIR + "/" + jobId + ".zip")) {
-    responseError(response, 404, "Specified job does not exist in job pool.");
+  if (!JobPool.has(jobId) && !CHECK_JOBPOOL_RESULTS_ONLY && !fs.existsSync(OUTPUT_DIR + "/" + jobId + ".zip")) {
+    responseError(response, 404, "Specified job does not exist.");
     return;
   }
   let ret: { [key: string]: string | number } = {};

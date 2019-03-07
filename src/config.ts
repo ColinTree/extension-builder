@@ -10,6 +10,8 @@ export const PORT =
 
 export const BUILDER_CONFIG_NAME =
     CUST_CONF["builder-config-name"] ? CUST_CONF["builder-config-name"] : DEF_CONF["builder-config-name"];
+export const CHECK_JOBPOOL_RESULTS_ONLY =
+    CUST_CONF["check-jobpool-results-only"] ? CUST_CONF["check-jobpool-results-only"] : DEF_CONF["check-jobpool-results-only"];
 export const KEEP_LEGACY_RESULTS =
     CUST_CONF["keep-legacy-results"] ? CUST_CONF["keep-legacy-results"] : DEF_CONF["keep-legacy-results"];
 export const OUTPUT_DIR =
