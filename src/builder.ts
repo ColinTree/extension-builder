@@ -112,7 +112,7 @@ class Builder {
       zip.writeZip(zipPath);
 
       JobPool.get(jobId).status = "done";
-      console.log("Done job(" + jobId + "): " + zipPath);
+      console.timeLog("Done job(" + jobId + "): " + zipPath);
 
       if (job.extraInfo.isRelease === true || config.pushToRelease === true) {
         ResultReleaser.tryAttachToRelease(job);

@@ -22,7 +22,7 @@
     "shelljs": "^0.8.3"
   },
   "scripts": {
-    "start": "pm2-runtime start ./build/index.js"
+    "start": "cd build && pm2-runtime start index.js"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.32",

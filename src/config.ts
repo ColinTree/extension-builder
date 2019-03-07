@@ -86,6 +86,9 @@ export function AuthGithub() {
       auth = "token " + CUST_CONF["github-auth-token"];
       break;
     }
+    default: {
+      console.log("Didn't find a method login onto github");
+    }
   }
   return new Github({
     auth,
