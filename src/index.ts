@@ -10,7 +10,10 @@ import handleCheckStatus from "./pages/check-status";
 import handleResult from "./pages/result";
 
 export const CONTENT_TYPE_JSON = {"Content-Type": "application/json"};
-export function responseSuccess(response: http.ServerResponse, info: {}) {
+export function responseSuccess(response: http.ServerResponse, info: object | string) {
+  if (typeof(info) == "string") {
+    info = { msg: info };
+  }
   info = JSON.stringify(info);
   console.log("Response end with 200: " + info);
   response.writeHead(200, CONTENT_TYPE_JSON);
