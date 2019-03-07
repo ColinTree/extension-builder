@@ -76,49 +76,59 @@ class Builder {
     }
   }
   private static async buildJob(jobId: string) {
-    await exec("cd " + WORKSPACE + " && git reset --hard HEAD && git clean -f");
-    console.timeLog("Workspace cleaned");
-
-    let job = JobPool.get(jobId);
-    console.timeLog("Going to build job(" + jobId + ")");
-    let config: JobConfig = JSON.parse(fs.readFileSync(TEMP_DIR + "/" + jobId + "/src/" + BUILDER_CONFIG_NAME, "utf8"));
-    let targetPath = WORKSPACE + "/appinventor/components/src/" + config.package.split(".").join("/") + "/";
-    fs.ensureDirSync(targetPath);
-    fs.emptyDirSync(targetPath);
-    fs.copySync(TEMP_DIR + "/" + jobId + "/src/", targetPath);
-    console.log("Copied: " + targetPath);
-
-    console.log("Compile started: job(" + jobId + ")");
     try {
-      await exec("cd " + WORKSPACE + "/appinventor && ant extensions", true);
+      await exec("cd " + WORKSPACE + " && git reset --hard HEAD && git clean -f");
+      console.timeLog("Workspace cleaned");
+
+      let job = JobPool.get(jobId);
+      console.timeLog("Going to build job(" + jobId + ")");
+      let config: JobConfig;
+      try {
+        config = JSON.parse(fs.readFileSync(TEMP_DIR + "/" + jobId + "/src/" + BUILDER_CONFIG_NAME, "utf8"));
+      } catch (e) {
+        throw new Error("Cannot find/read " + BUILDER_CONFIG_NAME);
+      }
+      let targetPath = WORKSPACE + "/appinventor/components/src/" + config.package.split(".").join("/") + "/";
+      fs.ensureDirSync(targetPath);
+      fs.emptyDirSync(targetPath);
+      fs.copySync(TEMP_DIR + "/" + jobId + "/src/", targetPath);
+      console.log("Copied: " + targetPath);
+
+      console.log("Compile started: job(" + jobId + ")");
+      try {
+        await exec("cd " + WORKSPACE + "/appinventor && ant extensions", true);
+      } catch (e) {
+        e = <ExecError> e;
+        // Notice that it would not work on windows
+        let stdout = e.stdout.split(WORKSPACE).join("%SERVER_WORKSPACE%/");
+        let stderr = e.stderr.split(WORKSPACE).join("%SERVER_WORKSPACE%/");
+        throw new Error("Failed execute ant extensions: " + e.message + ": code(" + e.code + ") stdout:\n" + stdout + "\n\nstderr:\n" + stderr);
+      }
+
+      let zip = new AdmZip();
+      zip.addLocalFolder(WORKSPACE + "/appinventor/components/build/extensions");
+      zip.addFile("build-info.json", new Buffer(JSON.stringify(job.extraInfo)));
+      let zipPath = OUTPUT_DIR + "/" + jobId + ".zip";
+      zip.writeZip(zipPath);
+
+      JobPool.get(jobId).status = "done";
+      console.log("Done job(" + jobId + "): " + zipPath);
+
+      if (job.extraInfo.isRelease === true || config.pushToRelease === true) {
+        ResultReleaser.tryAttachToRelease(job);
+      }
+
     } catch (e) {
-      e = <ExecError> e;
+      let err = <Error> e;
       JobPool.get(jobId).status = "failed";
-      // Notice that it would not work on windows
-      let stdout = e.stdout.split(WORKSPACE).join("%SERVER_WORKSPACE%/");
-      let stderr = e.stderr.split(WORKSPACE).join("%SERVER_WORKSPACE%/");
-      JobPool.get(jobId).attachInfo("failInfo",
-          e.message + ": code(" + e.code + ") stdout:\n" + stdout + "\n\nstderr:\n" + stderr);
-      console.log("Job(" + jobId + ") build failed in part of `ant extensions`");
+      let failInfo = err.name + ": " + err.message;
+      JobPool.get(jobId).attachInfo("failInfo", failInfo);
+      console.log("Failed build job(" + jobId + "): " + err);
+
+    } finally {
       Builder.builderAvailable = true;
       Builder.notify();
     }
-
-    let zip = new AdmZip();
-    zip.addLocalFolder(WORKSPACE + "/appinventor/components/build/extensions");
-    zip.addFile("build-info.json", new Buffer(JSON.stringify(job.extraInfo)));
-    let zipPath = OUTPUT_DIR + "/" + jobId + ".zip";
-    zip.writeZip(zipPath);
-
-    JobPool.get(jobId).status = "done";
-    console.log("Done job(" + jobId + "): " + zipPath);
-
-    if (job.extraInfo.isRelease === true || config.pushToRelease === true) {
-      ResultReleaser.tryAttachToRelease(job);
-    }
-
-    Builder.builderAvailable = true;
-    Builder.notify();
   }
 }
 
