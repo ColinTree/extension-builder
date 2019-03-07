@@ -34,25 +34,27 @@ export default (request: IncomingMessage, response: ServerResponse, params: URLS
       responseError(response, 403, "Does not support event type: " + event);
       return;
     }
+
     let content = "";
     request.on("data", chunk => {
       content += chunk;
     });
     request.on("end", () => {
       let playload = JSON.parse(content);
+      if (event == "push" && playload.ref.indexOf("/refs/heads/") == -1) {
+        responseSuccess(response, "Build ignored since this is not a push of /refs/heads/");
+        return;
+      }
       let commitOrTag: string;
-      switch (event) {
-        case "push":
-          commitOrTag = playload.head_commit.id;
-          break;
-        case "release":
-          commitOrTag = playload.release.tag_name;
-          break;
+      if (event == "push") {
+        commitOrTag = playload.head_commit.id;
+      } else if (event == "release") {
+        commitOrTag = playload.release.tag_name;
       }
       let owner = playload.repository.owner.login;
       let repo = playload.repository.name;
       console.log("Repo = " + owner + "/" + repo + " commitOrTag = " + commitOrTag);
-      if (typeof(owner)!="string" || typeof(repo)!="string" || commitOrTag) {
+      if (typeof(owner)!="string" || typeof(repo)!="string" || typeof(commitOrTag)!="string") {
         responseError(response, 403, "Cannot be built, at least one of owner, repo or commit is not string.");
         return;
       }
