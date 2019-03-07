@@ -10,7 +10,7 @@ function checkStatus(jobId, callback_whenDone, times = 0) {
   setTimeout(() => {
     $.ajax({
       url: "/check-status",
-      data: { jobId: jobId },
+      data: { jobId },
       dataType: "json",
       complete: xhr => {
         if (xhr.status == 404) {
@@ -40,7 +40,7 @@ $(document).ready(() => {
       url: "/build-with-github-repo",
       data: {
         owner: $("#owner").val(),
-        repoName: $("#repoName").val(),
+        repo: $("#repo").val(),
         ref: $("#ref").val()
       },
       dataType: "json",
@@ -93,7 +93,7 @@ $(document).ready(() => {
   });
   $("#previewRepo").click(() => {
     window.open(
-        "https://github.com/" + $("#owner").val() + "/" + $("#repoName").val() + "/tree/" + $("#ref").val(),
+        "https://github.com/" + $("#owner").val() + "/" + $("#repo").val() + "/tree/" + $("#ref").val(),
         "_blank").focus();
     return false;
   })
@@ -107,7 +107,7 @@ $(document).ready(() => {
         <td>Owner</td> <td><input type="text" id="owner" value="OpenSourceAIX" /></td>
       </tr>
       <tr>
-        <td>Repo Name</td> <td><input type="text" id="repoName" value="ColinTreeListView" /></td>
+        <td>Repo</td> <td><input type="text" id="repo" value="ColinTreeListView" /></td>
       </tr>
       <tr>
         <td>Ref</td> <td><input type="text" id="ref" value="extension-builder-test" /></td>

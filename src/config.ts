@@ -29,16 +29,16 @@ export const ENABLE_REPO_WHITELIST =
 
 interface WhiteList {
   owner: string;
-  repoName: string;
+  repo: string;
   refs: string | string[]; // refs includes branchs, commits and tags. Can be "*" for any
 }
 const REPO_WHITELIST: WhiteList[] =
     CUST_CONF["whitelist"] ? CUST_CONF["whitelist"] : DEF_CONF["whitelist"];
-export function inWhitelist(owner: string, repoName: string, coderef = "") {
+export function inWhitelist(owner: string, repo: string, coderef = "") {
   for (let i in REPO_WHITELIST) {
     if (REPO_WHITELIST.hasOwnProperty(i)) {
       let item = REPO_WHITELIST[i];
-      if (owner == item.owner && repoName == item.repoName) {
+      if (owner == item.owner && repo == item.repo) {
         let acceptRefs = item.refs;
         if (acceptRefs == "*") {
           return true;

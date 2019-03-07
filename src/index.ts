@@ -19,7 +19,7 @@ export function responseSuccess(response: http.ServerResponse, info: {}) {
 export function responseError(response: http.ServerResponse, code: number, msg: string) {
   console.log("Response end with " + code + ": " + msg);
   response.writeHead(code, CONTENT_TYPE_JSON);
-  response.end(JSON.stringify({ msg: msg }));
+  response.end(JSON.stringify({ msg }));
 }
 
 const STATIC_FILE_MAP: { [key: string]: string; } = {
