@@ -1,4 +1,4 @@
-import { exec, ExecOutputReturnValue } from "shelljs";
+import { exec, ExecOutputReturnValue } from 'shelljs';
 
 export default async (command: string, silent = false) => {
   let result = <ExecOutputReturnValue> exec(command, {
@@ -14,7 +14,7 @@ export default async (command: string, silent = false) => {
 export class ExecError extends Error {
   private _execOutputReturnValue: ExecOutputReturnValue;
   constructor(execOutputReturnValue: ExecOutputReturnValue) {
-    super("Command executing error occured");
+    super('Command executing error occured');
     this._execOutputReturnValue = execOutputReturnValue;
   }
   get code() {
