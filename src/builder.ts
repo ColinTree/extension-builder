@@ -77,7 +77,7 @@ class Builder {
   }
   private static async buildJob(jobId: string) {
     try {
-      await exec('cd ' + WORKSPACE + ' && git reset --hard HEAD && git clean -f');
+      await exec('cd ' + WORKSPACE + ' && git reset --hard HEAD && git clean -f -d');
       console.timeLog('Workspace cleaned');
 
       let job = JobPool.get(jobId);
