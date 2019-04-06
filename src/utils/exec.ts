@@ -1,16 +1,14 @@
 import { exec, ExecOutputReturnValue } from "shelljs";
 
-export default async (command: string, silent = false) => {
-  let result = <ExecOutputReturnValue> exec(command, {
-    silent: silent,
-    async: false // ensure it returns ExecOutputReturnValue
+export default (command: string, silent = false) => new Promise((resolve, reject) => {
+  exec(command, { silent: silent }, (code, stdout, stderr) => {
+    if (code == 0) {
+      resolve(stdout);
+    } else {
+      reject(new ExecError({ code, stdout, stderr }));
+    }
   });
-  if (result.code == 0) {
-    return result.stdout;
-  } else {
-    throw new ExecError(result);
-  }
-}
+})
 export class ExecError extends Error {
   private _execOutputReturnValue: ExecOutputReturnValue;
   constructor(execOutputReturnValue: ExecOutputReturnValue) {
