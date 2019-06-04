@@ -5,14 +5,14 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ColinTree-bot/extension-builder.git"
+    "url": "git+https://github.com/ColinTree/extension-builder.git"
   },
   "author": "ColinTree",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ColinTree-bot/extension-builder/issues"
+    "url": "https://github.com/ColinTree/extension-builder/issues"
   },
-  "homepage": "https://github.com/ColinTree-bot/extension-builder#readme",
+  "homepage": "https://github.com/ColinTree/extension-builder#readme",
   "dependencies": {
     "@octokit/rest": "^16.16.3",
     "adm-zip": "^0.4.13",
