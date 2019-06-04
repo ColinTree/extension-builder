@@ -1,4 +1,4 @@
-import { exec, ExecOutputReturnValue } from "shelljs";
+import { exec, ExecOutputReturnValue } from 'shelljs';
 
 export default (command: string, silent = false) => new Promise((resolve, reject) => {
   exec(command, { silent: silent }, (code, stdout, stderr) => {
@@ -12,7 +12,7 @@ export default (command: string, silent = false) => new Promise((resolve, reject
 export class ExecError extends Error {
   private _execOutputReturnValue: ExecOutputReturnValue;
   constructor(execOutputReturnValue: ExecOutputReturnValue) {
-    super("Command executing error occured");
+    super('Command executing error occured');
     this._execOutputReturnValue = execOutputReturnValue;
   }
   get code() {
