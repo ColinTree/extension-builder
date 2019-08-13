@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<head>
+	<title>Extension builder by ColinTree</title>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="materialize.min.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<script>
+	function checkStatus(jobId, callback_whenDone, times = 0) {
+	  if (times == 80) {
+	    alert("Time out! checked 80 times already");
+	    return;
+	  }
+	  setTimeout(() => {
+	    $.ajax({
+	      url: "/check-status",
+	      data: { jobId },
+	      dataType: "json",
+	      complete: xhr => {
+	        if (xhr.status == 404) {
+	          alert("404! maybe server is too busy to handle our request");
+	          return;
+	        } else if (xhr.status != 200) {
+	          alert(xhr.status + "!" + xhr.responseJSON.msg);
+	          return;
+	        }
+	        $("#status").text(xhr.responseJSON.status);
+	        if (xhr.responseJSON.status == "done") {
+	          callback_whenDone();
+	        } else {
+	          if (xhr.responseJSON.status == "failed") {
+	            $("#output").text(xhr.responseJSON.failInfo);
+	          } else {
+	            checkStatus(jobId, callback_whenDone, times + 1);
+	          }
+	        }
+	      }
+	    });
+	  }, 5000);
+	}
+	$(document).ready(() => {
+	  $("#buildWithGithubRepo").submit(() => {
+	    $.ajax({
+	      url: "/build-with-github-repo",
+	      data: {
+	        owner: $("#owner").val(),
+	        repo: $("#repo").val(),
+	        ref: $("#ref").val()
+	      },
+	      dataType: "json",
+	      success: json => {
+	        let jobId = json["jobId"];
+	        $("#jobId").text(jobId);
+	        $("#status").text("submitted");
+	        checkStatus(jobId, () => {
+	          $("#download")
+	          .attr("href", "/result?jobId=" + jobId)
+	          .parent().show();
+	        });
+	      },
+	      error: xhr => {
+	        console.log(xhr.responseJSON);
+	        alert(xhr.responseJSON);
+	      }
+	    });
+	    $("[type=submit]").prop("disabled", true);
+	    return false;
+	  });
+	  $("#buildWithZip").submit(() => {
+	    let formData = new FormData();
+	    formData.append("source", $("#zip")[0].files[0]);
+	    $.ajax({
+	      url: "/build-with-zip",
+	      type: "POST",
+	      cache: false,
+	      data: formData,
+	      processData: false,
+	      contentType: false,
+	      dataType: "json",
+	      success: json => {
+	        let jobId = json["jobId"];
+	        $("#jobId").text(jobId);
+	        $("#status").text("submitted");
+	        checkStatus(jobId, () => {
+	          $("#download")
+	          .attr("href", "/result?jobId=" + jobId)
+	          .parent().show();
+	        });
+	      },
+	      error: xhr => {
+	        console.log(xhr.responseJSON);
+	        alert(xhr.responseJSON);
+	      }
+	    });
+	    $("[type=submit]").prop("disabled", true);
+	    return false;
+	  });
+	  $("#previewRepo").click(() => {
+	    window.open(
+	        "https://github.com/" + $("#owner").val() + "/" + $("#repo").val() + "/tree/" + $("#ref").val(),
+	        "_blank").focus();
+	    return false;
+	  })
+	});
+	</script>
+</head>
+
+<body>
+	<div id="content" class="center">
+		<h2>Extension builder by ColinTree</h2>
+		<div class="card">
+			<h4>Get From GitHub</h4>
+			<form id="buildWithGithubRepo">
+			  <label for="owner">Owner</label><input type="text" id="owner" value="OpenSourceAIX" />
+			  <label for="repo">Repo</label><input type="text" id="repo" value="ColinTreeListView" />
+			  <label for="ref">Ref</label><input type="text" id="ref" value="master" />
+			  <input type="submit" class="btn btnTwo waves-effect"/>
+			  <button id="previewRepo" class="btn btnTwo waves-effect"><i class='material-icons'>toc</i>Preview Repo</button>
+			</form>
+		</div>
+		
+		<!-- FILE UPLOAD -->
+
+		<div class="card">
+			<h4>Get From Upload File</h4>
+			<form id="buildWithZip" enctype="multipart/form-data">
+			  <div class="file-field input-field">
+			      <div class="btn">
+			        <span>Click to Upload a File</span>
+			        <input type="file" id="zip">
+			      </div>
+			      <div class="file-path-wrapper">
+			        <input class="file-path validate" type="text">
+			      </div>
+			    </div>
+			  <input type="submit" class="btn"/>
+			</form>
+		</div>
+
+		<div id="statusDiv" class="left card">
+			  <h4>Compiling Infomation</h4>
+			  <span class="chip"><i class="material-icons">perm_identity</i>JobId: </span><label id="jobId"></label><br>
+			  <span class="chip"><i class="material-icons">verified_user</i>Status: </span><label id="status"></label><br>
+			  <pre id="output"></pre>
+			  <p style="display: none;">
+			    <a id="download" target="_blank" class="btn"><i class="material-icons">play_for_work</i>Click Here To DOWNLOAD</a>
+			  </p>
+		</div>
+		
+		<footer class="page-footer">
+			  <a href="https://github.com/ColinTree/extension-builder" target="_blank" style="color:#fff;">This project is on github!</a><br>
+			  <a href="index_cn.html">中文</a> | En
+		</footer>
+	</div>
+</body>
+</html>
