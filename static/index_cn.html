@@ -9,7 +9,7 @@
 	<script>
 	function checkStatus(jobId, callback_whenDone, times = 0) {
 	  if (times == 80) {
-	    alert("请求超时！已检查80端口");
+	    alert("请求超时！已重试达80次");
 	    return;
 	  }
 	  setTimeout(() => {
