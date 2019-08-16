@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<head>
+  <title v-text="translation('title')"></title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/combine/npm/materialize-css@1.0.0,npm/vue@2.6.10,npm/axios@0.19.0/dist/axios.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/materialize-css@1.0.0/dist/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+@media screen and (min-width: 851px) { 
+  #content{
+    padding-left: 10em;
+    padding-right: 10em;
+  }
+  .btnTwo{
+    width:40%;
+    margin:2em;
+    height:3em;
+  }
+  .card{
+    padding-left: 10em;
+    padding-right: 10em;
+    padding-top: 2em;
+    padding-bottom: 2em;
+    box-shadow: 5px 5px 5px #888888;
+  }
+  div{
+    width: 100%;
+  }
+  .page-footer{
+    margin-top: 2em;
+    padding: 3em;
+  }
+}
+
+@media screen and (max-width:850px){
+  .card {
+    padding-left: 3em;
+    padding-right: 3em;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    box-shadow: 2px 2px 2px #888888;
+  }
+  div{
+    width: 100%;
+  }
+}
+  </style>
+</head>
+
+<body>
+  <div id="content" class="center">
+    <h3 v-text="translation('title')"></h3>
+    <div class="card">
+      <h4 v-text="translation('buildGithub')"></h4>
+      <form @submit.prevent="onSubmitBuildGithub">
+        <label
+             for="owner"
+             v-text="translation('repoOwner')"></label>
+        <input id="owner" type="text" v-model="owner" />
+        <label
+            for="repo"
+            v-text="translation('repoName')"></label>
+        <input id="repo" type="text" v-model="repo" />
+        <label
+            for="ref"
+            v-text="translation('repoRef')"></label>
+        <input id="ref" type="text" v-model="ref" />
+        <button
+            type="submit"
+            v-text="translation('submit')"
+            class="btn btnTwo waves-effect"></button>
+        <a
+            class="btn btnTwo waves-effect"
+            target="_blank"
+            :href="'https://github.com/' + owner + '/' + repo + '/tree/' + ref"
+            v-text="translation('viewRepo')"></a>
+      </form>
+    </div>
+
+    <div class="card">
+      <h4 v-text="translation('buildZip')"></h4>
+      <form enctype="multipart/form-data" @submit.prevent="onSubmitFile">
+        <div class="file-field input-field">
+            <div class="btn">
+              <span v-text="translation('upload')"></span>
+              <input id="zip" type="file">
+            </div>
+            <div class="file-path-wrapper">
+              <input class="file-path validate" type="text">
+            </div>
+          </div>
+        <button
+            type="submit"
+            v-text="translation('submit')"
+            class="btn"></button>
+      </form>
+    </div>
+
+    <div class="card">
+        <h4 v-text="translation('jobInfo')"></h4>
+        <span class="chip">
+          <i class="material-icons">perm_identity</i>
+          <span v-text="translation('jobId')"></span>
+          <span v-text="jobId"></span>
+        </span>
+        <label id="jobId"></label>
+        <br>
+        <span class="chip">
+          <i class="material-icons">verified_user</i>
+          <span v-text="translation('jobStatus')"></span>
+          <span v-text="jobStatus"></span>
+        </span>
+        <label id="status"></label>
+        <br>
+        <pre v-model="output"></pre>
+        <p v-if="jobStatus === 'done'">
+          <a target="_blank" class="btn" :href="'/result?jobId=' + jobId">
+            <i class="material-icons">play_for_work</i>
+            <span v-text="translation('download')"></span>
+          </a>
+        </p>
+    </div>
+
+    <div class="page-footer">
+        <a
+            href="https://github.com/ColinTree/extension-builder"
+            target="_blank"
+            style="color:#fff;"
+            v-text="translation('viewThisProject')"></a>
+        <br>
+        <div v-if="lang === 'cn'">
+          中文 | <a href="#" @click="lang = 'en'">En</a>
+        </div>
+        <div v-else>
+          <a href="#" @click="lang = 'cn'">中文</a> | En
+        </div>
+      </div>
+  </div>
+  <script>
+  let app = new Vue({
+    el: '#content',
+    data: {
+      lang: 'cn',
+      translations: {
+        cn: {
+          title: '扩展组件编译器',
+          buildGithub: '构建Github上的源码',
+          repoOwner: '仓库所有者',
+          repoName: '仓库名称',
+          repoRef: '分支、标签或提交id',
+          submit: '提交',
+          viewRepo: '查看该仓库',
+          buildZip: '构建本地zip包',
+          upload: '点击上传文件',
+          jobInfo: '编译信息',
+          jobId: '编译 Id: ',
+          jobStatus: '编译状态: ',
+          download: '点击下载',
+          viewThisProject: '此项目存储在Github上面',
+          timeOut80: '请求超时！已重试达80次',
+          status404: '404错误！可能是服务器正忙，无法处理或请求'
+        },
+        en: {
+          title: 'Extension builder',
+          buildGithub: 'Build source from GitHub',
+          repoOwner: 'Owner',
+          repoName: 'Repo',
+          repoRef: 'Ref',
+          submit: 'Submit',
+          viewRepo: 'Goto this repo',
+          buildZip: 'Build local zip file',
+          upload: 'Click to Upload a File',
+          jobInfo: 'Compiling Info',
+          jobId: 'JobId: ',
+          jobStatus: 'Status: ',
+          download: 'Click Here To DOWNLOAD',
+          viewThisProject: 'This project is on github!',
+          timeOut80: 'Time out! checked 80 times already',
+          status404: '404! maybe server is too busy to handle our request'
+        }
+      },
+
+      owner: 'OpenSourceAIX',
+      repo: 'ColinTreeListView',
+      ref: 'master',
+
+      jobId: '',
+      jobStatus: '',
+      output: ''
+    },
+    methods: {
+      translation (id) {
+        return this.translations[this.lang][id]
+      },
+      onSubmitBuildGithub () {
+        axios.get('/build-with-github-repo', {
+          params: {
+            owner: this.owner,
+            repo: this.repo,
+            ref: this.ref
+          }
+        })
+        .then(response => {
+          this.jobId = response.data['jobId'];
+          this.jobStatus = 'submitted';
+          this.checkStatus(this.jobId);
+        })
+        .catch(error => {
+          console.log(error);
+          alert((error.response || {}).data);
+        });
+      },
+      onSubmitFile () {
+        let formData = new FormData();
+	      formData.append("source", document.getElementById('zip').files[0]);
+        axios.post('/build-with-zip', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        .then(response => {
+          this.jobId = response.data['jobId'];
+          this.jobStatus = 'submitted';
+          this.checkStatus(this.jobId);
+        })
+        .catch(error => {
+          console.log(error);
+          alert((error.response || {}).data);
+        });
+      },
+      checkStatus(jobId, times = 0) {
+        if (times == 80) {
+          alert(this.translation('timeOut80'));
+          return;
+        }
+        setTimeout(() => {
+          axios.get('/check-status', {
+            params: { jobId },
+            validateStatus: status => true
+          })
+          .then(response => {
+            switch (response.status) {
+              case 200: {
+                this.jobStatus = response.data.status;
+                if (this.jobStatus === 'failed') {
+                  this.output = response.data.failInfo;
+                } else if (this.jobStatus !== 'done') {
+                  this.checkStatus(jobId, times + 1);
+                }
+                break;
+              }
+              case 404: {
+                alert(this.translation('status 404'));
+                return;
+              }
+              default: {
+                alert('status ' + response.status + ': ' + response.data.msg);
+                return;
+              }
+            }
+          });
+        }, 5000);
+      }
+    }
+  })
+  </script>
+</body>
+</html>

@@ -26,8 +26,8 @@ export function responseError(response: http.ServerResponse, code: number, msg: 
 }
 
 const STATIC_FILE_MAP: { [key: string]: string; } = {
-  '':  'index_cn.html',
-  '/': 'index_cn.html'
+  '':  'index.html',
+  '/': 'index.html'
 }
 function handleStaticFile(response: http.ServerResponse, pathname: string): boolean {
   console.log('Checking static file raw pathname="' + pathname + '"');

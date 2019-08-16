@@ -24,8 +24,11 @@ COPY package*.json ./
 RUN npm i
 
 # build ts files
-COPY . .
+COPY src src
+COPY tsconfig.json ./
 RUN tsc
+
+COPY . .
 
 EXPOSE 8048
 CMD [ "npm", "start" ]
