@@ -129,7 +129,7 @@
       </span>
       <label id="status"></label>
       <br>
-      <pre v-model="output"></pre>
+      <pre v-text="output" style="text-align: left"></pre>
       <p v-if="jobStatus === 'done'">
         <a target="_blank" class="btn" :href="'/result?jobId=' + jobId">
           <span class="material-icons">play_for_work</span>
