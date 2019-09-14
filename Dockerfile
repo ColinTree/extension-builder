@@ -8,7 +8,8 @@ RUN apt-get update -yq \
     && apt-get install -y git
 
 # prepare App Inventor workspace
-RUN git clone --depth 1 https://github.com/ColinTree/appinventor-sources.git -b e-b-1.3.0 /usr/workspace \
+# This tag should have a message to avoid build error -------------->>>>>>>>>>> VVVVVVVVV
+RUN git clone --depth 1 https://github.com/ColinTree/appinventor-sources.git -b e-b-1.4.0 /usr/workspace \
     && cd /usr/workspace \
     && git submodule init \
     && git submodule update
