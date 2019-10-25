@@ -29,9 +29,13 @@ To make extensions enable to be recognised & built by this service, add `builder
 
 `builder-config.json` Accepts:
 
-```
+```json
 {
-  "package": "SAME PACKAGE NAME WITH YOUR EXTENSION(S)"
+  // [Optional] Same package name with your extension(s)
+  //            If this is left blank, builder will try to detect from your java files
+  "package": @string,
+  // [Optional] This will be affective only if the build is called by webhook
+  "pushToRelease": @boolean
 }
 ```
 
