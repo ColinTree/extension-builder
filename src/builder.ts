@@ -1,9 +1,11 @@
+import * as AdmZip from 'adm-zip';
 import * as fs from 'fs-extra';
-import * as AdmZip from 'adm-zip'
+import * as klawSync from 'klaw-sync';
 
+import { AuthGithub, BUILDER_CONFIG_NAME, OUTPUT_DIR, TEMP_DIR, WORKSPACE } from './config';
 import exec, { ExecError } from './utils/exec';
-import { WORKSPACE, TEMP_DIR, BUILDER_CONFIG_NAME, OUTPUT_DIR, AuthGithub } from './config';
 import Queue from './utils/queue';
+import { StringUtil } from './utils/stringUtil';
 
 export class JobPool {
   private static pool = new Map<string, Job>();
@@ -19,8 +21,8 @@ export class JobPool {
 }
 type JobStatus = 'preparing' | 'waiting' | 'building' | 'done' | 'failed';
 interface JobConfig {
-  package: string
-  pushToRelease: boolean
+  package?: string
+  pushToRelease?: boolean
 }
 export class Job {
   private _id: string;
@@ -83,10 +85,21 @@ class Builder {
       let job = JobPool.get(jobId);
       console.timeLog('Going to build job(' + jobId + ')');
       let config: JobConfig;
-      try {
-        config = JSON.parse(fs.readFileSync(TEMP_DIR + '/' + jobId + '/src/' + BUILDER_CONFIG_NAME, 'utf8'));
-      } catch (e) {
-        throw new Error('Cannot find/read ' + BUILDER_CONFIG_NAME);
+      if (fs.existsSync(TEMP_DIR + '/' + jobId + '/src/' + BUILDER_CONFIG_NAME)) {
+        try {
+          config = JSON.parse(fs.readJsonSync(TEMP_DIR + '/' + jobId + '/src/' + BUILDER_CONFIG_NAME));
+        } catch (e) {
+          throw new Error(`Cannot read ${BUILDER_CONFIG_NAME}`);
+        }
+      } else {
+        config = {};
+      }
+      if (!('package' in config)) {
+        try {
+          config.package = await Builder.detectPackage(jobId);
+        } catch (e2) {
+          throw new Error(`Config does not contain a field package Failed auto detecting package info.`);
+        }
       }
       let targetPath = WORKSPACE + '/appinventor/components/src/' + config.package.split('.').join('/') + '/';
       fs.ensureDirSync(targetPath);
@@ -128,6 +141,26 @@ class Builder {
     } finally {
       Builder.builderAvailable = true;
       Builder.notify();
+    }
+  }
+  private static async detectPackage (jobId: string) {
+    let pkg: string | null = null;
+    klawSync(TEMP_DIR + '/' + jobId + '/src/', { nodir: true })
+    .forEach(item => {
+      if (pkg === null && item.path.endsWith('.java')) {
+        let fileContent = fs.readFileSync(item.path, 'utf-8');
+        fileContent = fileContent.trimLeft();
+        fileContent = StringUtil.trimLeftComments(fileContent);
+        let match = fileContent.match(/^package[ \n]+(?!\.)([\.\w\d]*[\w\d]);/i);
+        if (match !== null) {
+          pkg = match[1]; // 0 will be full match including 'package '
+        }
+      }
+    });
+    if (pkg === null) {
+      throw new Error('No package info in found');
+    } else {
+      return pkg;
     }
   }
 }
