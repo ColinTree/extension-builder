@@ -1,4 +1,4 @@
-export class StringUtil {
+export default class StringUtil {
 
   public static readonly MULTI_LINE_COMMENT_REGEXP = /^(\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\/\s*)*/;
   public static readonly SINGLE_LINE_COMMENT_REGEXP = /^(\/\/[^\n]*\s*)*/

@@ -5,7 +5,7 @@ import * as klawSync from 'klaw-sync';
 import { AuthGithub, BUILDER_CONFIG_NAME, OUTPUT_DIR, TEMP_DIR, WORKSPACE } from './config';
 import exec, { ExecError } from './utils/exec';
 import Queue from './utils/queue';
-import { StringUtil } from './utils/StringUtil';
+import StringUtil from './utils/StringUtil';
 
 export class JobPool {
   private static pool = new Map<string, Job>();
