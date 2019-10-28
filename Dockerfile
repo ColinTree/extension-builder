@@ -29,6 +29,8 @@ COPY src src
 COPY tsconfig.json ./
 RUN tsc
 
+COPY src/config build/config
+COPY src/static build/static
 COPY . .
 
 EXPOSE 8048

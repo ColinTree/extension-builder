@@ -5,12 +5,17 @@
   "check-jobpool-results-only": false,
   "keep-legacy-results": true,
   "output-dir": "/usr/build-result/",
-  "static-dir": "./static/",
   "temp-dir": "%SYSTEM_TEMP%/extension-builder/",
   "workspace": "/usr/workspace/",
 
   "whitelist-enabled": false,
   "whitelist": [
-    { "owner": "OpenSourceAIX", "repo": "ColinTreeListView", "refs": "extension-builder-test" }
-  ]
+    {
+      "owner": "OpenSourceAIX",
+      "repo": "ColinTreeListView",
+      "refs": "master"
+    }
+  ],
+
+  "github-auth-type": "none"
 }
