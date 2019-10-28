@@ -5,7 +5,6 @@
   "check-jobpool-results-only": false,
   "keep-legacy-results": true,
   "output-dir": "/usr/build-result/",
-  "static-dir": "./static/",
   "temp-dir": "%SYSTEM_TEMP%/extension-builder/",
   "workspace": "/usr/workspace/",
 
@@ -14,7 +13,9 @@
     {
       "owner": "OpenSourceAIX",
       "repo": "ColinTreeListView",
-      "refs": "extension-builder-test"
+      "refs": "master"
     }
-  ]
+  ],
+
+  "github-auth-type": "none"
 }

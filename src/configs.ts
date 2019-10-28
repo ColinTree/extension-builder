@@ -19,8 +19,6 @@ export const KEEP_LEGACY_RESULTS =
   config.get('keep-legacy-results') as boolean;
 export const OUTPUT_DIR =
   config.get('output-dir') as string;
-export const STATIC_DIR =
-  config.get('static-dir') as string;
 export const TEMP_DIR =
   (config.get('temp-dir') as string)
   .replace('%SYSTEM_TEMP%', os.tmpdir());
@@ -48,33 +46,18 @@ export function inWhitelist (owner: string, repo: string, coderef = '') {
   return false;
 }
 
-export const GITHUB_AUTH_TYPE: 'none' | 'basic' | 'token' =
-  config.has('github-auth-type')
-  ? config.get('github-auth-type') as any
-  : 'none';
-const GITHUB_LOGGER = {
-  debug: (message: string, info?: object) => {
-    console.log('[github.debug] ' + message);
-  },
-  info: (message: string, info?: object) => {
-    console.log('[github.info] ' + message);
-  },
-  warn: (message: string, info?: object) => {
-    console.log('[github.warn] ' + message);
-  },
-  error: (message: string, info?: object) => {
-    console.log('[github.error] ' + message);
-  },
-};
+const GITHUB_AUTH_TYPE =
+  config.get('github-auth-type') as 'none' | 'basic' | 'token';
 export function AuthGithub () {
   let auth;
   switch (GITHUB_AUTH_TYPE) {
     case 'basic': {
       console.log('Login github with username & password');
       auth = {
-        username: config.get('github-auth-username'),
-        password: config.get('github-auth-password'),
+        username: config.get('github-auth-username') as string,
+        password: config.get('github-auth-password') as string,
         on2fa: async () => {
+          // TODO
           throw new Error('2FA required, extension-builder dont support this yet.');
         },
       };
@@ -90,7 +73,20 @@ export function AuthGithub () {
     }
   }
   return new Github({
-    auth: auth as any,
-    log: GITHUB_LOGGER,
+    auth,
+    log: {
+      debug: (message: string, info?: object) => {
+        console.log('[github.debug] ' + message);
+      },
+      info: (message: string, info?: object) => {
+        console.log('[github.info] ' + message);
+      },
+      warn: (message: string, info?: object) => {
+        console.log('[github.warn] ' + message);
+      },
+      error: (message: string, info?: object) => {
+        console.log('[github.error] ' + message);
+      },
+    },
   });
 }

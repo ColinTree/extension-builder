@@ -1,3 +1,4 @@
 node_modules
 build
-eb-config.json
+src/config/*
+!src/config/default.json
