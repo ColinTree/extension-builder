@@ -11,8 +11,7 @@ RUN apt-get update -yq \
 # This tag should have a message to avoid build error -------------->>>>>>>>>>> VVVVVVVVV
 RUN git clone --depth 1 https://github.com/ColinTree/appinventor-sources.git -b e-b-1.4.0 /usr/workspace \
     && cd /usr/workspace \
-    && git submodule init \
-    && git submodule update
+    && git submodule update --init
 
 # put it at last since it is sometimes modified
 RUN npm i -g typescript \
