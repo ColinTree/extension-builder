@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es6",
+    "target": "es2017",
     "noImplicitAny": true,
+    "moduleResolution": "node",
     "sourceMap": false,
-    "rootDir":"./src",
-    "outDir":"./build",
+    "rootDir":"src",
+    "outDir":"build",
+    "baseUrl": ".",
     "watch":false
   },
   "include":[
-    "./src/**/*"
+    "src/**/*"
   ]
 }

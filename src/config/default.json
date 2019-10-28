@@ -11,6 +11,10 @@
 
   "whitelist-enabled": false,
   "whitelist": [
-    { "owner": "OpenSourceAIX", "repo": "ColinTreeListView", "refs": "extension-builder-test" }
+    {
+      "owner": "OpenSourceAIX",
+      "repo": "ColinTreeListView",
+      "refs": "extension-builder-test"
+    }
   ]
 }

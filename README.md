@@ -15,10 +15,8 @@ In your server, run:
 cd /path/to/extension-builder/
 git pull
 
-# if there is already one container running
-docker stop extension-builder
-docker rm extension-builder
-
+docker stop extension-builder || true
+docker rm extension-builder || true
 docker build . -t extension-builder
 docker run -d -p 8048:8048 --restart unless-stopped --name="extension-builder" extension-builder
 ```
@@ -29,7 +27,7 @@ To make extensions enable to be recognised & built by this service, add `builder
 
 `builder-config.json` Accepts:
 
-```json
+```json5
 {
   // [Optional] Same package name with your extension(s)
   //            If this is left blank, builder will try to detect from your java files
