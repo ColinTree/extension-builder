@@ -6,7 +6,7 @@ import { AuthGithub, BUILDER_CONFIG_NAME, OUTPUT_DIR, TEMP_DIR, WORKSPACE } from
 import Job, { JobConfig } from './Job.class';
 import JobPool from './JobPool.class';
 import exec, { ExecError } from './utils/exec';
-import StringUtil from './utils/StringUtil';
+import StringUtil from './utils/StringUtil.class';
 
 export default class Builder {
 
@@ -32,9 +32,9 @@ export default class Builder {
       let config: JobConfig;
       if (fs.existsSync(configFileName)) {
         try {
-          config = JSON.parse(fs.readJsonSync(configFileName));
+          config = fs.readJsonSync(configFileName);
         } catch (e) {
-          throw new Error(`Cannot read ${BUILDER_CONFIG_NAME}`);
+          throw new Error(`Cannot read ${configFileName}: ${e}`);
         }
       } else {
         config = {};
@@ -50,9 +50,9 @@ export default class Builder {
       fs.ensureDirSync(targetPath);
       fs.emptyDirSync(targetPath);
       fs.copySync(TEMP_DIR + '/' + jobId + '/src/', targetPath);
-      console.log('Copied: ' + targetPath);
+      console.log(`Copied: ${targetPath}`);
 
-      console.log('Compile started: job(' + jobId + ')');
+      console.log(`Compile started: job(${jobId})`);
       try {
         await exec(`cd ${WORKSPACE}/appinventor && ant extensions`, true);
       } catch (e) {

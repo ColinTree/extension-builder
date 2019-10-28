@@ -21,6 +21,19 @@ docker build . -t extension-builder
 docker run -d -p 8048:8048 --restart unless-stopped --name="extension-builder" extension-builder
 ```
 
+## View server log
+
+```sh
+docker exec -it extension-builder pm2 logs
+```
+
+sometimes you would need to exec:
+
+```sh
+docker exec -it extension-builder /bin/sh
+pm2 logs
+```
+
 ## How to use
 
 To make extensions enable to be recognised & built by this service, add `builder-config.json` in the same directory of your extension java file.

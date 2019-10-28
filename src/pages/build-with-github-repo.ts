@@ -11,7 +11,7 @@ export default {
     const owner = ctx.query.owner;
     const repo = ctx.query.repo;
     const ref = ctx.query.ref || 'master';
-    console.timeLog('Job info received: repo= ' + owner + '/' + repo + ' ref= ' + ref);
+    console.timeLog(`Job info received: repo= ${owner}/${repo} ref= ${ref}`);
     if (!REPO_WHITELIST_ENABLED || inWhitelist(owner, repo, ref)) {
       startGithubJob(ctx, owner, repo, ref);
     } else {
@@ -21,9 +21,9 @@ export default {
 
   async post (ctx: Context) {
     const event = ctx.get('X-GitHub-Event') as string | undefined;
-    console.log('Github event = ' + event);
+    console.log(`Github event = ${event}`);
     if (!['push', 'release'].includes(event)) {
-      ctx.throw(403, 'Does not support event type: ' + event);
+      ctx.throw(403, `Does not support event type: ${event}`);
     }
 
     let content = '';
@@ -91,11 +91,11 @@ async function startGithubJob (ctx: Context, owner: string, repo: string, ref: s
     throw new Error('No source found in archive downloaded.');
   }
   const entryDir = zip.getEntries()[0].entryName;
-  zip.extractAllTo(TEMP_DIR + '/' + jobId + '/rawComponentSource/');
-  fs.moveSync(TEMP_DIR + '/' + jobId + '/rawComponentSource/' + entryDir,
-              TEMP_DIR + '/' + jobId + '/src');
-  fs.rmdirSync(TEMP_DIR + '/' + jobId + '/rawComponentSource');
-  console.timeLog('Source extracted to ' + TEMP_DIR + '/' + jobId + '/src');
+  const jobRoot = `${TEMP_DIR}/${jobId}`;
+  zip.extractAllTo(`${jobRoot}/rawComponentSource/`);
+  fs.moveSync(`${jobRoot}/rawComponentSource/${entryDir}`, `${jobRoot}/src`);
+  fs.rmdirSync(`${jobRoot}/rawComponentSource`);
+  console.timeLog(`Source extracted to ${TEMP_DIR}/${jobId}/src`);
 
   BuildQueue.enqueue(job);
 }
