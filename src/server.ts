@@ -44,6 +44,9 @@ app.use(async (ctx, next) => {
   }
 });
 app.use(router.routes());
+app.use(ctx => {
+  ctx.throw(404);
+});
 
 console.timeLog = (msg: string) => console.log(`[${new Date().toLocaleString()}] ${msg}`);
 
