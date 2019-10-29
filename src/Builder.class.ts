@@ -1,6 +1,7 @@
 import * as AdmZip from 'adm-zip';
 import * as fs from 'fs-extra';
 import * as klawSync from 'klaw-sync';
+import { join } from 'path';
 import BuildQueue from './BuildQueue.class';
 import { AuthGithub, BUILDER_CONFIG_NAME, OUTPUT_DIR, TEMP_DIR, WORKSPACE } from './configs';
 import Job, { JobConfig } from './Job.class';
@@ -28,7 +29,7 @@ export default class Builder {
 
       const job = JobPool.get(jobId);
       console.timeLog(`Going to build job(${jobId})`);
-      const configFileName = `${TEMP_DIR}/${jobId}/src/${BUILDER_CONFIG_NAME}`;
+      const configFileName = join(TEMP_DIR, jobId, 'src', BUILDER_CONFIG_NAME);
       let config: JobConfig;
       if (fs.existsSync(configFileName)) {
         try {
@@ -46,10 +47,10 @@ export default class Builder {
           throw new Error(`Config does not contain a field package failed auto detecting package info.`);
         }
       }
-      const targetPath = WORKSPACE + '/appinventor/components/src/' + config.package.split('.').join('/') + '/';
+      const targetPath = join(WORKSPACE, 'appinventor', 'components', 'src', ...config.package.split('.'));
       fs.ensureDirSync(targetPath);
       fs.emptyDirSync(targetPath);
-      fs.copySync(TEMP_DIR + '/' + jobId + '/src/', targetPath);
+      fs.copySync(join(TEMP_DIR, jobId, 'src'), targetPath);
       console.log(`Copied: ${targetPath}`);
 
       console.log(`Compile started: job(${jobId})`);
@@ -91,7 +92,7 @@ export default class Builder {
   }
   private static async detectPackage (jobId: string) {
     let pkg: string | null = null;
-    klawSync(`${TEMP_DIR}/${jobId}/src/`, { nodir: true })
+    klawSync(join(TEMP_DIR, jobId, 'src'), { nodir: true })
     .forEach(item => {
       if (pkg === null && item.path.endsWith('.java')) {
         let fileContent = fs.readFileSync(item.path, 'utf-8');
@@ -133,7 +134,7 @@ export default class Builder {
 
     const name = 'binary.zip';
     const label = 'Auto-Build result by extension-builder';
-    const file = fs.readFileSync(OUTPUT_DIR + '/' + job.id + '.zip');
+    const file = fs.readFileSync(`${OUTPUT_DIR}/${job.id}.zip`);
     try {
       await github.repos.uploadReleaseAsset({
         headers: {

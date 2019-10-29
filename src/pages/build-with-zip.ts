@@ -1,6 +1,7 @@
 import * as AdmZip from 'adm-zip';
 import * as formidable from 'formidable';
 import { Context } from 'koa';
+import { join } from 'path';
 import BuildQueue from '../BuildQueue.class';
 import { BUILD_WITH_ZIP_ENABLED, REPO_WHITELIST_ENABLED, TEMP_DIR } from '../configs';
 import Job from '../Job.class';
@@ -21,7 +22,7 @@ export default (ctx: Context) => {
     ctx.throw(400, 'Please use multipart/form-data format');
   }
 
-  const jobDir = TEMP_DIR + '/' + job.id + '/';
+  const jobDir = join(TEMP_DIR, job.id);
   const form = new formidable.IncomingForm();
   form.uploadDir = jobDir;
   form.keepExtensions = true;
@@ -30,7 +31,7 @@ export default (ctx: Context) => {
       return;
     }
     const zip = new AdmZip(file.path);
-    zip.extractAllTo(jobDir + '/src/');
+    zip.extractAllTo(join(jobDir, 'src'));
     BuildQueue.enqueue(job);
     ctx.body = {
       msg: 'Job added.',

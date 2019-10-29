@@ -2,6 +2,7 @@ import * as Github from '@octokit/rest';
 import * as Admzip from 'adm-zip';
 import * as fs from 'fs-extra';
 import { Context } from 'koa';
+import { join } from 'path';
 import BuildQueue from '../BuildQueue.class';
 import { BUILD_WITH_GITHUB_REPO_ENABLED, inWhitelist, REPO_WHITELIST_ENABLED, TEMP_DIR } from '../configs';
 import Job from '../Job.class';
@@ -97,11 +98,12 @@ async function startGithubJob (ctx: Context, owner: string, repo: string, ref: s
     throw new Error('No source found in archive downloaded.');
   }
   const entryDir = zip.getEntries()[0].entryName;
-  const jobRoot = `${TEMP_DIR}/${jobId}`;
-  zip.extractAllTo(`${jobRoot}/rawComponentSource/`);
-  fs.moveSync(`${jobRoot}/rawComponentSource/${entryDir}`, `${jobRoot}/src`);
-  fs.rmdirSync(`${jobRoot}/rawComponentSource`);
-  console.timeLog(`Source extracted to ${TEMP_DIR}/${jobId}/src`);
+  const jobRoot = join(TEMP_DIR, jobId);
+  const rawComponentSource = join(jobRoot, 'rawComponentSource');
+  zip.extractAllTo(rawComponentSource);
+  fs.moveSync(join(rawComponentSource, entryDir), join(jobRoot, 'src'));
+  fs.rmdirSync(rawComponentSource);
+  console.timeLog(`Source extracted to ${join(jobRoot, 'src')}`);
 
   BuildQueue.enqueue(job);
 }
