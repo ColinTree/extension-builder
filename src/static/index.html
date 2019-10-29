@@ -207,6 +207,7 @@
         return this.translations[this.lang][id]
       },
       onSubmitBuildGithub () {
+        this.output = '';
         axios.get('/build-with-github-repo', {
           params: {
             owner: this.owner,
@@ -225,6 +226,7 @@
         });
       },
       onSubmitFile () {
+        this.output = '';
         let formData = new FormData();
         formData.append("source", document.getElementById('zip').files[0]);
         axios.post('/build-with-zip', formData, {
