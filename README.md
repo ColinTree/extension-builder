@@ -77,9 +77,18 @@ for `local.json`, we accept the following configs:
   * default to `"/usr/workspace/"`
   * The workspace to build extension
 
+* build-with-github-repo-enabled
+  * boolean
+  * default to `true`
+
+* build-with-zip-enabled
+  * boolean
+  * default to `true`
+
 * whitelist-enabled
   * boolean
   * default to `false`
+  * *Note*: Enabling whitelist will disable build-with-zip automatically
 
 * whitelist
   * array of { "owner": "...", "repo": "...", "refs": "..." }

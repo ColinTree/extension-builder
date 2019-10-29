@@ -8,6 +8,9 @@
   "temp-dir": "%SYSTEM_TEMP%/extension-builder/",
   "workspace": "/usr/workspace/",
 
+  "build-with-github-repo-enabled": true,
+  "build-with-zip-enabled": true,
+
   "whitelist-enabled": false,
   "whitelist": [
     {

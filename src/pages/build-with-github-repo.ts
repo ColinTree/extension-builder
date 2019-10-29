@@ -3,11 +3,14 @@ import * as Admzip from 'adm-zip';
 import * as fs from 'fs-extra';
 import { Context } from 'koa';
 import BuildQueue from '../BuildQueue.class';
-import { inWhitelist, REPO_WHITELIST_ENABLED, TEMP_DIR } from '../configs';
+import { BUILD_WITH_GITHUB_REPO_ENABLED, inWhitelist, REPO_WHITELIST_ENABLED, TEMP_DIR } from '../configs';
 import Job from '../Job.class';
 
 export default {
   async get (ctx: Context) {
+    if (!BUILD_WITH_GITHUB_REPO_ENABLED) {
+      ctx.throw(403, 'Build with github repo not enabled');
+    }
     const owner = ctx.query.owner;
     const repo = ctx.query.repo;
     const ref = ctx.query.ref || 'master';
@@ -20,6 +23,9 @@ export default {
   },
 
   async post (ctx: Context) {
+    if (!BUILD_WITH_GITHUB_REPO_ENABLED) {
+      ctx.throw(403, 'Build with github repo not enabled');
+    }
     const event = ctx.get('X-GitHub-Event') as string | undefined;
     console.log(`Github event = ${event}`);
     if (!['push', 'release'].includes(event)) {
