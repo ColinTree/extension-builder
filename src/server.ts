@@ -13,7 +13,7 @@ const router = new Router();
 
 router.get('/build-with-github-repo', buildWithGithubRepo.get);
 router.post('/build-with-github-repo', buildWithGithubRepo.post); // webhook
-router.get('/build-with-zip', buildWithZip);
+router.post('/build-with-zip', buildWithZip);
 router.get('/check-status', checkStatus);
 router.get('/result', result);
 
