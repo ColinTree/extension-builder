@@ -24,10 +24,18 @@ export const TEMP_DIR =
   .replace('%SYSTEM_TEMP%', os.tmpdir());
 export const WORKSPACE =
   config.get('workspace') as string;
+
+export const BUILD_WITH_GITHUB_REPO_ENABLED =
+  config.get('build-with-github-repo-enabled') as boolean;
+export const BUILD_WITH_ZIP_ENABLED =
+  config.get('build-with-zip-enabled') as boolean;
+export const BUILD_WITH_PLAIN_SOURCE_ENABLED =
+  config.get('build-with-plain-source-enabled') as boolean;
+
 export const REPO_WHITELIST_ENABLED =
   config.get('whitelist-enabled');
-
-const REPO_WHITELIST: WhiteList[] = config.get('whitelist');
+const REPO_WHITELIST =
+  config.get('whitelist') as WhiteList[];
 export function inWhitelist (owner: string, repo: string, coderef = '') {
   for (const i in REPO_WHITELIST) {
     if (REPO_WHITELIST.hasOwnProperty(i)) {

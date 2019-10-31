@@ -6,7 +6,7 @@ import JobPool from '../JobPool.class';
 
 export default (ctx: Context) => {
   const jobId = ctx.query.jobId as string;
-  if (!JobPool.has(jobId) && !CHECK_JOBPOOL_RESULTS_ONLY && !fs.existsSync(OUTPUT_DIR + '/' + jobId + '.zip')) {
+  if (!JobPool.has(jobId) && !CHECK_JOBPOOL_RESULTS_ONLY && !fs.existsSync(`${OUTPUT_DIR}/${jobId}.zip`)) {
     ctx.throw(404, 'Specified job does not exist.');
   }
   const ret: Dictionary<string | number | boolean> = {};

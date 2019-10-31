@@ -95,12 +95,31 @@
     </div>
 
     <div class="card">
-      <h4 v-text="translation('buildZip')"></h4>
-      <form enctype="multipart/form-data" @submit.prevent="onSubmitFile">
+      <h4 v-text="translation('buildPlainSource')"></h4>
+      <form enctype="multipart/form-data" @submit.prevent="onSubmitJava">
         <div class="file-field input-field">
           <div class="btn">
             <span v-text="translation('upload')"></span>
-            <input id="zip" type="file">
+            <input id="java" type="file" accept=".java">
+          </div>
+          <div class="file-path-wrapper">
+            <input class="file-path validate" type="text">
+          </div>
+        </div>
+        <button
+            type="submit"
+            v-text="translation('submit')"
+            class="btn"></button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h4 v-text="translation('buildZip')"></h4>
+      <form enctype="multipart/form-data" @submit.prevent="onSubmitZip">
+        <div class="file-field input-field">
+          <div class="btn">
+            <span v-text="translation('upload')"></span>
+            <input id="zip" type="file" accept=".zip">
           </div>
           <div class="file-path-wrapper">
             <input class="file-path validate" type="text">
@@ -164,6 +183,7 @@
           repoRef: '分支、标签或提交id',
           submit: '提交',
           viewRepo: '查看该仓库',
+          buildPlainSource: '构建本地java文件',
           buildZip: '构建本地zip包',
           upload: '点击上传文件',
           jobInfo: '编译信息',
@@ -182,6 +202,7 @@
           repoRef: 'Ref',
           submit: 'Submit',
           viewRepo: 'Goto this repo',
+          buildPlainSource: 'Build local java file',
           buildZip: 'Build local zip file',
           upload: 'Click to Upload a File',
           jobInfo: 'Compile Job Info',
@@ -225,7 +246,29 @@
           alert((error.response || {}).data);
         });
       },
-      onSubmitFile () {
+      onSubmitJava () {
+        this.output = '';
+        let formData = new FormData();
+        formData.append("source", document.getElementById('java').files[0]);
+        console.log(document.getElementById('java').files[0]);
+        axios.post('/build-with-plain-source', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        .then(response => {
+          this.jobId = response.data['jobId'];
+          this.jobStatus = 'submitted';
+          if (this.jobId) {
+            this.checkStatus(this.jobId);
+          } else {
+            alert('Server currently out of service');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          alert((error.response || {}).data);
+        });
+      },
+      onSubmitZip () {
         this.output = '';
         let formData = new FormData();
         formData.append("source", document.getElementById('zip').files[0]);
