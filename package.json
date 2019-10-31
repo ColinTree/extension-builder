@@ -21,6 +21,7 @@
     "fs-extra": "^7.0.1",
     "klaw-sync": "^6.0.0",
     "koa": "^2.10.0",
+    "koa-body": "^4.1.1",
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
     "mime-types": "^2.1.22",

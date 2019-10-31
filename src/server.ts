@@ -1,9 +1,11 @@
 import * as fs from 'fs-extra';
 import * as Koa from 'koa';
+import * as koaBody from 'koa-body';
 import * as Router from 'koa-router';
 import * as serve from 'koa-static';
 import { KEEP_LEGACY_RESULTS, PORT, TEMP_DIR } from './configs';
 import buildWithGithubRepo from './pages/build-with-github-repo';
+import buildWithPlainSource from './pages/build-with-plain-source';
 import buildWithZip from './pages/build-with-zip';
 import checkStatus from './pages/check-status';
 import result from './pages/result';
@@ -13,7 +15,8 @@ const router = new Router();
 
 router.get('/build-with-github-repo', buildWithGithubRepo.get);
 router.post('/build-with-github-repo', buildWithGithubRepo.post); // webhook
-router.post('/build-with-zip', buildWithZip);
+router.post('/build-with-plain-source', koaBody({ multipart: true }), buildWithPlainSource);
+router.post('/build-with-zip', koaBody({ multipart: true }), buildWithZip);
 router.get('/check-status', checkStatus);
 router.get('/result', result);
 
@@ -37,7 +40,7 @@ app.use(async (ctx, next) => {
       console.timeLog(`[${ctx.url}] Response end with 200: ${ctx.body}`);
     }
   } catch (e) {
-    ctx.status = e.status;
+    ctx.status = isFinite(e.status) ? e.status : 500;
     ctx.type = 'json';
     ctx.body = JSON.stringify({ msg: (e as Error).message });
     console.timeLog(`[${ctx.url}] Response end with ${ctx.status}: ${(e as Error).message}`);

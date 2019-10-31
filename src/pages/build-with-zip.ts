@@ -1,5 +1,4 @@
 import * as AdmZip from 'adm-zip';
-import * as formidable from 'formidable';
 import { Context } from 'koa';
 import { join } from 'path';
 import BuildQueue from '../BuildQueue.class';
@@ -16,30 +15,15 @@ export default (ctx: Context) => {
   const job = new Job();
   job.attachInfo('buildType', 'source-upload');
 
-  const type = ctx.headers['content-type'] || '';
-  if (!type.includes('multipart/form-data')) {
-    console.log('Request content type: ' + type);
-    ctx.throw(400, 'Please use multipart/form-data format');
+  if (!('source' in ctx.request.files)) {
+    ctx.throw(400, 'No file uploaded');
   }
-
   const jobDir = join(TEMP_DIR, job.id);
-  const form = new formidable.IncomingForm();
-  form.uploadDir = jobDir;
-  form.keepExtensions = true;
-  form.on('file', (name, file) => {
-    if (name !== 'source') {
-      return;
-    }
-    const zip = new AdmZip(file.path);
-    zip.extractAllTo(join(jobDir, 'src'));
-    BuildQueue.enqueue(job);
-    ctx.body = {
-      msg: 'Job added.',
-      jobId: job.id,
-    };
-  });
-  form.on('error', err => {
-    ctx.throw(500, err);
-  });
-  form.parse(ctx.req);
+  const zip = new AdmZip(ctx.request.files.source.path);
+  zip.extractAllTo(join(jobDir, 'src'));
+  BuildQueue.enqueue(job);
+  ctx.body = {
+    msg: 'Job added.',
+    jobId: job.id,
+  };
 };

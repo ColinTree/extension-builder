@@ -10,6 +10,7 @@
 
   "build-with-github-repo-enabled": true,
   "build-with-zip-enabled": true,
+  "build-with-plain-source-enabled": false,
 
   "whitelist-enabled": false,
   "whitelist": [

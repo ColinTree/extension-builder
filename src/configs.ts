@@ -29,6 +29,8 @@ export const BUILD_WITH_GITHUB_REPO_ENABLED =
   config.get('build-with-github-repo-enabled') as boolean;
 export const BUILD_WITH_ZIP_ENABLED =
   config.get('build-with-zip-enabled') as boolean;
+export const BUILD_WITH_PLAIN_SOURCE_ENABLED =
+  config.get('build-with-plain-source-enabled') as boolean;
 
 export const REPO_WHITELIST_ENABLED =
   config.get('whitelist-enabled');

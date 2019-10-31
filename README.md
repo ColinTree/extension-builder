@@ -85,10 +85,14 @@ for `local.json`, we accept the following configs:
   * boolean
   * default to `true`
 
+* build-with-plain-source-enabled
+  * boolean
+  * default to `false`
+
 * whitelist-enabled
   * boolean
   * default to `false`
-  * *Note*: Enabling whitelist will disable build-with-zip automatically
+  * *Note*: Enabling whitelist will disable build-with-zip and build-with-plain-source automatically
 
 * whitelist
   * array of { "owner": "...", "repo": "...", "refs": "..." }
