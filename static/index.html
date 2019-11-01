@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <head>
-  <title v-text="translation('title')"></title>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="https://cdn.jsdelivr.net/combine/npm/materialize-css@1.0.0,npm/vue@2.6.10,npm/axios@0.19.0/dist/axios.min.js"></script>
@@ -226,6 +225,14 @@
       jobStatus: '',
       output: ''
     },
+    mounted () {
+      if (navigator.language.startsWith('zh')) {
+        this.lang = 'cn';
+      } else {
+        this.lang = 'en';
+      }
+      this.updateTitle();
+    },
     computed: {
       buildInProgress () {
         const status = this.jobStatus;
@@ -239,7 +246,15 @@
         }
       }
     },
+    watch: {
+      lang () {
+        this.updateTitle();
+      }
+    },
     methods: {
+      updateTitle () {
+        document.title = this.translation('title');
+      },
       translation (id) {
         return this.translations[this.lang][id];
       },
