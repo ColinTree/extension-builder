@@ -21,8 +21,8 @@ This is a cloud build system of app inventor extensions
 
 ## Upgrade from 1.x
 
-The major different between 1.x and 2.x is the location of config files.
-So the most important upgrade is move your `eb-config.json` from the project root dir to `src/config/`, and rename it with `local.json`
+The major different between 1.x and 2.2+ is the location & name of config files.
+So the most important upgrade is move your `eb-config.json` from the project root dir to `config/`, and rename it with `local.json`
 
 ## How to deploy
 

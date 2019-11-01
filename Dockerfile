@@ -26,11 +26,11 @@ RUN npm i
 # build ts files
 COPY src src
 COPY tsconfig.json ./
+COPY tslint.json ./
 RUN tsc
 
-COPY src/config build/config
-COPY src/static build/static
-COPY . .
+COPY config config
+COPY static static
 
 EXPOSE 8048
 CMD [ "npm", "start" ]

@@ -24,7 +24,7 @@ app.use(async (ctx, next) => {
   console.timeLog(`${ctx.method} ${ctx.url}`);
   await next();
 });
-app.use(serve('static'));
+app.use(serve('../static'));
 app.use(async (ctx, next) => {
   try {
     await next();
