@@ -1,5 +1,4 @@
 process.env.NODE_CONFIG_DIR = __dirname + '/../config/';
-process.env.NODE_CONFIG_DIR = __dirname + '/../config/';
 
 import * as Github from '@octokit/rest';
 import * as config from 'config';
