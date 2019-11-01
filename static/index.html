@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <head>
-  <title v-text="translation('title')"></title>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="https://cdn.jsdelivr.net/combine/npm/materialize-css@1.0.0,npm/vue@2.6.10,npm/axios@0.19.0/dist/axios.min.js"></script>
@@ -83,6 +82,7 @@
             v-text="translation('repoRef')"></label>
         <input id="ref" type="text" v-model="ref" />
         <button
+            :disabled="buildInProgress"
             type="submit"
             v-text="translation('submit')"
             class="btn btnTwo waves-effect"></button>
@@ -96,7 +96,7 @@
 
     <div class="card">
       <h4 v-text="translation('buildPlainSource')"></h4>
-      <form enctype="multipart/form-data" @submit.prevent="onSubmitJava">
+      <form enctype="multipart/form-data" @submit.prevent="onSubmitFile('java', '/build-with-plain-source')">
         <div class="file-field input-field">
           <div class="btn">
             <span v-text="translation('upload')"></span>
@@ -107,6 +107,7 @@
           </div>
         </div>
         <button
+            :disabled="buildInProgress"
             type="submit"
             v-text="translation('submit')"
             class="btn"></button>
@@ -115,7 +116,7 @@
 
     <div class="card">
       <h4 v-text="translation('buildZip')"></h4>
-      <form enctype="multipart/form-data" @submit.prevent="onSubmitZip">
+      <form enctype="multipart/form-data" @submit.prevent="onSubmitFile('zip', '/build-with-zip')">
         <div class="file-field input-field">
           <div class="btn">
             <span v-text="translation('upload')"></span>
@@ -126,6 +127,7 @@
           </div>
         </div>
         <button
+            :disabled="buildInProgress"
             type="submit"
             v-text="translation('submit')"
             class="btn"></button>
@@ -223,62 +225,66 @@
       jobStatus: '',
       output: ''
     },
+    mounted () {
+      if (navigator.language.startsWith('zh')) {
+        this.lang = 'cn';
+      } else {
+        this.lang = 'en';
+      }
+      this.updateTitle();
+    },
+    computed: {
+      buildInProgress () {
+        const status = this.jobStatus;
+        switch (this.jobStatus) {
+          case '':
+          case 'done':
+          case 'failed':
+            return false;
+          default:
+            return true;
+        }
+      }
+    },
+    watch: {
+      lang () {
+        this.updateTitle();
+      }
+    },
     methods: {
+      updateTitle () {
+        document.title = this.translation('title');
+      },
       translation (id) {
-        return this.translations[this.lang][id]
+        return this.translations[this.lang][id];
       },
       onSubmitBuildGithub () {
-        this.output = '';
-        axios.get('/build-with-github-repo', {
+        this.handleRequest(axios.get('/build-with-github-repo', {
           params: {
             owner: this.owner,
             repo: this.repo,
             ref: this.ref
           }
-        })
-        .then(response => {
-          this.jobId = response.data['jobId'];
-          this.jobStatus = 'submitted';
-          this.checkStatus(this.jobId);
-        })
-        .catch(error => {
-          console.log(error);
-          alert((error.response || {}).data);
-        });
+        }));
       },
-      onSubmitJava () {
-        this.output = '';
+      onSubmitFile (fieldName, url) {
         let formData = new FormData();
-        formData.append("source", document.getElementById('java').files[0]);
-        console.log(document.getElementById('java').files[0]);
-        axios.post('/build-with-plain-source', formData, {
+        formData.append("source", document.getElementById(fieldName).files[0]);
+        this.handleRequest(axios.post(url, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        }));
+      },
+      handleRequest (axiosRequest) {
+        this.output = '';
+        axiosRequest
         .then(response => {
-          this.jobId = response.data['jobId'];
-          this.jobStatus = 'submitted';
-          if (this.jobId) {
+          if (response.data['jobId']) {
+            this.jobId = response.data['jobId'];
+            this.jobStatus = 'submitted';
             this.checkStatus(this.jobId);
           } else {
             alert('Server currently out of service');
           }
-        })
-        .catch(error => {
-          console.log(error);
-          alert((error.response || {}).data);
-        });
-      },
-      onSubmitZip () {
-        this.output = '';
-        let formData = new FormData();
-        formData.append("source", document.getElementById('zip').files[0]);
-        axios.post('/build-with-zip', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        .then(response => {
-          this.jobId = response.data['jobId'];
-          this.jobStatus = 'submitted';
-          this.checkStatus(this.jobId);
         })
         .catch(error => {
           console.log(error);
@@ -307,11 +313,11 @@
                 break;
               }
               case 404: {
-                alert(this.translation('status 404'));
+                alert(this.translation('status404'));
                 return;
               }
               default: {
-                alert('status ' + response.status + ': ' + response.data.msg);
+                alert(`status ${response.status}: ${response.data.msg}`);
                 return;
               }
             }
