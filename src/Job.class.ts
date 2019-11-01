@@ -3,6 +3,9 @@ import { ensureDirSync, mkdtempSync } from 'fs-extra';
 import { TEMP_DIR } from './configs';
 import JobPool from './JobPool.class';
 
+// tslint:disable-next-line no-var-requires
+const pkg = require('../package.json');
+
 export type JobStatus = 'preparing' | 'waiting' | 'building' | 'done' | 'failed';
 export interface JobConfig {
   package?: string;
@@ -21,6 +24,7 @@ export default class Job {
     const jobDir = mkdtempSync(TEMP_DIR + '/');
     this.id = jobDir.substring(jobDir.lastIndexOf('/') + 1);
     this.status = 'preparing';
+    this.attachInfo('builderVersion', pkg.version);
     this.attachInfo('startTimestamp', Date.now());
     JobPool.add(this);
   }
