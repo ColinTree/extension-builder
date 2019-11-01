@@ -83,6 +83,7 @@
             v-text="translation('repoRef')"></label>
         <input id="ref" type="text" v-model="ref" />
         <button
+            :disabled="buildInProgress"
             type="submit"
             v-text="translation('submit')"
             class="btn btnTwo waves-effect"></button>
@@ -107,6 +108,7 @@
           </div>
         </div>
         <button
+            :disabled="buildInProgress"
             type="submit"
             v-text="translation('submit')"
             class="btn"></button>
@@ -126,6 +128,7 @@
           </div>
         </div>
         <button
+            :disabled="buildInProgress"
             type="submit"
             v-text="translation('submit')"
             class="btn"></button>
@@ -223,9 +226,22 @@
       jobStatus: '',
       output: ''
     },
+    computed: {
+      buildInProgress () {
+        const status = this.jobStatus;
+        switch (this.jobStatus) {
+          case '':
+          case 'done':
+          case 'failed':
+            return false;
+          default:
+            return true;
+        }
+      }
+    },
     methods: {
       translation (id) {
-        return this.translations[this.lang][id]
+        return this.translations[this.lang][id];
       },
       onSubmitBuildGithub () {
         this.output = '';
