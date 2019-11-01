@@ -1,4 +1,4 @@
 node_modules
 build
-src/config/*
-!src/config/default.json
+config/*
+!config/default.json

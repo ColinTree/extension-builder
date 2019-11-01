@@ -29,7 +29,7 @@ COPY tsconfig.json ./
 COPY tslint.json ./
 RUN tsc
 
-COPY src/config build/config
+COPY config config
 COPY static static
 
 EXPOSE 8048
