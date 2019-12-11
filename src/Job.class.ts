@@ -11,21 +11,26 @@ export interface JobConfig {
   package?: string;
   pushToRelease?: boolean;
 }
+export type JobBuildType = 'github-repo' | 'plain-source-upload' | 'source-upload';
 
 export default class Job {
 
   public readonly id: string;
+  public readonly builderVersion: string;
+  public readonly startTimestamp: number;
+  public readonly buildType: JobBuildType;
   public readonly extraInfo: Dictionary<string | number | boolean> = {};
 
   public status: JobStatus;
 
-  public constructor () {
+  public constructor (buildType: JobBuildType) {
     ensureDirSync(TEMP_DIR);
     const jobDir = mkdtempSync(TEMP_DIR + '/');
     this.id = jobDir.substring(jobDir.lastIndexOf('/') + 1);
+    this.builderVersion = pkg.version;
+    this.startTimestamp = Date.now();
+    this.buildType = buildType;
     this.status = 'preparing';
-    this.attachInfo('builderVersion', pkg.version);
-    this.attachInfo('startTimestamp', Date.now());
     JobPool.add(this);
   }
 

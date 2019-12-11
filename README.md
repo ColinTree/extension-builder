@@ -15,7 +15,7 @@ This is a cloud build system of app inventor extensions
 - [extension-builder](#extension-builder)
   - [Upgrade from 1.x](#upgrade-from-1x)
   - [How to deploy](#how-to-deploy)
-    - [Additional Config before build & deploy](#additional-config-before-build--deploy)
+    - [Additional Config before build &amp; deploy](#additional-config-before-build-amp-deploy)
     - [View server log](#view-server-log)
   - [How to use [optional builder config in extension source]](#how-to-use-optional-builder-config-in-extension-source)
 
