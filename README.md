@@ -16,7 +16,8 @@ This is a cloud build system of app inventor extensions
   - [Upgrade from 1.x](#upgrade-from-1x)
   - [How to deploy](#how-to-deploy)
     - [Additional Config before build &amp; deploy](#additional-config-before-build-amp-deploy)
-    - [View server log](#view-server-log)
+  - [View server status](#view-server-status)
+  - [View server log](#view-server-log)
   - [How to use [optional builder config in extension source]](#how-to-use-optional-builder-config-in-extension-source)
 
 ## Upgrade from 1.x
@@ -120,7 +121,11 @@ for `local.json`, we accept the following configs:
   * no default value
   * Used when github-auth-type is token
 
-### View server log
+## View server status
+
+Goto `http://<YOUR_SERVER_HOST_AND_PORT>/server-status.html`
+
+## View server log
 
 ```sh
 docker exec -it extension-builder pm2 logs
