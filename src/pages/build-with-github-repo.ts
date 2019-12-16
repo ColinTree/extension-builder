@@ -80,7 +80,7 @@ async function startGithubJob (ctx: Context, owner: string, repo: string, ref: s
 
   ctx.body = { jobId, msg: 'Job added.' };
 
-  // Downlaod archive
+  // Download archive
   let archiveResponse: Github.Response<Github.ReposGetArchiveLinkResponse>;
   try {
     archiveResponse = await new Github().repos.getArchiveLink({ owner, repo, ref, archive_format: 'zipball' });

@@ -7,6 +7,7 @@ import { KEEP_LEGACY_RESULTS, PORT, TEMP_DIR } from './configs';
 import buildWithGithubRepo from './pages/build-with-github-repo';
 import buildWithPlainSource from './pages/build-with-plain-source';
 import buildWithZip from './pages/build-with-zip';
+import checkServerStatus from './pages/check-server-status';
 import checkStatus from './pages/check-status';
 import result from './pages/result';
 
@@ -17,6 +18,7 @@ router.get('/build-with-github-repo', buildWithGithubRepo.get);
 router.post('/build-with-github-repo', buildWithGithubRepo.post); // webhook
 router.post('/build-with-plain-source', koaBody({ multipart: true }), buildWithPlainSource);
 router.post('/build-with-zip', koaBody({ multipart: true }), buildWithZip);
+router.get('/check-server-status', checkServerStatus);
 router.get('/check-status', checkStatus);
 router.get('/result', result);
 
