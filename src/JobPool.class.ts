@@ -2,11 +2,9 @@ import Job from './Job.class';
 
 export default class JobPool {
 
-  public static lastJobId = '';
-
   public static add (job: Job) {
     JobPool.pool.set(job.id, job);
-    this.lastJobId = job.id;
+    this._lastJobId = job.id;
   }
   public static get (jobId: string) {
     return JobPool.pool.get(jobId);
@@ -17,6 +15,12 @@ export default class JobPool {
 
   public static getJobIds () {
     return JobPool.pool.keys();
+  }
+
+  // tslint:disable-next-line variable-name
+  private static _lastJobId = '';
+  public static get lastJobId () {
+    return this._lastJobId;
   }
 
   private static pool = new Map<string, Job>();
