@@ -41,8 +41,14 @@ input:checked + .slider:before { -webkit-transform: translateX(26px); -ms-transf
       Server status:
       <label v-text="rawData.currentAvailable ? 'available' : 'building'"></label>
       <label v-text="rawData.isUsingCache ? '(cached info)' : ''"></label>
-      <button @click="fetchData">Refresh</button>
     </h2>
+    <p>
+      <button @click="fetchData">Refresh</button>
+      <label>
+        <input type="checkbox" v-model="handleF5" />
+        Bind F5 with refersh data <small>(Note: untick this will use <a herf="https://en.wikipedia.org/wiki/HTTP_cookie">cookie</a>)</small>
+      </label>
+    </p>
     <div style="display: flex">
       <div style="flex-grow: 2;">
         <bar-chart ref="monthChart" :width="200" :height="80"></bar-chart>

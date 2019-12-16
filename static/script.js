@@ -29,6 +29,7 @@ const app = new Vue({
         'failed': window.chartColors.red,
       }
     },
+    handleF5: true,
     rawData: {
       counter: {},
       currentAvailable: false,
@@ -128,12 +129,21 @@ const app = new Vue({
     },
   },
   mounted () {
+    document.cookie.split(';').forEach(pair => {
+      if (pair.trimLeft().startsWith('dontHandleF5=')) {
+        this.handleF5 = false;
+      }
+    });
+    document.addEventListener("keydown", this.keyDownHandler);
     this.fetchData();
     this.renderMonthChart();
     this.renderPieChart();
     this.renderTimeBuildChart();
   },
   watch: {
+    handleF5 (val) {
+      document.cookie = `dontHandleF5=${val ? '; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;' : 'whatever'}`;
+    },
     monthChartTypeSwitch (val) {
       if (val === true) {
         this.monthChartType = 'status';
@@ -152,6 +162,14 @@ const app = new Vue({
     }
   },
   methods: {
+    keyDownHandler (evt) {
+      if (this.handleF5 && evt.code === 'F5') {
+        evt.keyCode = 0;
+        evt.cancelBubble = true;
+        evt.preventDefault();
+        this.fetchData();
+      }
+    },
     fetchData () {
       axios.get('/check-server-status')
       .then(response => {
