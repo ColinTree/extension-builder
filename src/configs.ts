@@ -26,6 +26,10 @@ export const TEMP_DIR =
   .replace('%SYSTEM_TEMP%', os.tmpdir());
 export const WORKSPACE =
   config.get('workspace') as string;
+export const SERVER_STATUS_PAGE_ENABLED =
+  config.get('server-status-page-enabled') as boolean;
+export const SERVER_STATUS_API_ENABLED =
+  config.get('server-status-api-enabled') as boolean;
 
 export const BUILD_WITH_GITHUB_REPO_ENABLED =
   config.get('build-with-github-repo-enabled') as boolean;

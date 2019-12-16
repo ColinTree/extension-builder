@@ -7,6 +7,8 @@
   "output-dir": "/usr/build-result/",
   "temp-dir": "%SYSTEM_TEMP%/extension-builder/",
   "workspace": "/usr/workspace/",
+  "server-status-page-enabled": true,
+  "server-status-api-enabled": true,
 
   "build-with-github-repo-enabled": true,
   "build-with-zip-enabled": true,

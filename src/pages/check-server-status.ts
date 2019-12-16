@@ -2,6 +2,7 @@ import { Dictionary } from 'express-serve-static-core';
 import { Context } from 'koa';
 import * as moment from 'moment';
 import Builder from '../Builder.class';
+import { SERVER_STATUS_API_ENABLED } from '../configs';
 import { JobBuildType, JobStatus } from '../Job.class';
 import JobPool from '../JobPool.class';
 
@@ -76,6 +77,11 @@ function generateCounter () {
 }
 
 export default (ctx: Context) => {
+  if (SERVER_STATUS_API_ENABLED === false) {
+    ctx.status = 403;
+    ctx.body = 'This api is disabled by config';
+    return;
+  }
   const currentAvailable = Builder.builderAvailable;
 
   if (cache !== null && cache.stable && cache.lastJobId === JobPool.lastJobId) {
@@ -96,7 +102,6 @@ export default (ctx: Context) => {
       isUsingCache: false,
       timeThisGenerated: Date.now(),
     };
-
   }
 
 };

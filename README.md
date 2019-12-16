@@ -78,6 +78,17 @@ for `local.json`, we accept the following configs:
   * default to `"/usr/workspace/"`
   * The workspace to build extension
 
+* server-status-page-enabled
+  * boolean
+  * default to `true`
+  * define whether server-status.html will be accessible
+
+* server-status-api-enabled
+  * boolean
+  * default to `true`
+  * define whether api check-server-status will be accessible
+  * *Note*: Disabling server-status api will disable server-status page automatically
+
 * build-with-github-repo-enabled
   * boolean
   * default to `true`
