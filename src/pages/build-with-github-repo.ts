@@ -70,10 +70,9 @@ export default {
 };
 
 async function startGithubJob (ctx: Context, owner: string, repo: string, ref: string, isRelease = false) {
-  const job = new Job();
+  const job = new Job('github-repo');
   const jobId = job.id;
 
-  job.attachInfo('buildType', 'github-repo');
   job.attachInfo('owner', owner);
   job.attachInfo('repo', repo);
   job.attachInfo('ref', ref);
@@ -81,7 +80,7 @@ async function startGithubJob (ctx: Context, owner: string, repo: string, ref: s
 
   ctx.body = { jobId, msg: 'Job added.' };
 
-  // Downlaod archive
+  // Download archive
   let archiveResponse: Github.Response<Github.ReposGetArchiveLinkResponse>;
   try {
     archiveResponse = await new Github().repos.getArchiveLink({ owner, repo, ref, archive_format: 'zipball' });

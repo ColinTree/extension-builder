@@ -17,8 +17,7 @@ export default (ctx: Context) => {
     ctx.throw(400, 'No file uploaded');
   }
 
-  const job = new Job();
-  job.attachInfo('buildType', 'plain-source-upload');
+  const job = new Job('plain-source-upload');
 
   const jobDir = join(TEMP_DIR, job.id, 'src');
   ensureDirSync(jobDir);

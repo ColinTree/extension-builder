@@ -15,8 +15,9 @@ This is a cloud build system of app inventor extensions
 - [extension-builder](#extension-builder)
   - [Upgrade from 1.x](#upgrade-from-1x)
   - [How to deploy](#how-to-deploy)
-    - [Additional Config before build & deploy](#additional-config-before-build--deploy)
-    - [View server log](#view-server-log)
+    - [Additional Config before build &amp; deploy](#additional-config-before-build-amp-deploy)
+  - [View server status](#view-server-status)
+  - [View server log](#view-server-log)
   - [How to use [optional builder config in extension source]](#how-to-use-optional-builder-config-in-extension-source)
 
 ## Upgrade from 1.x
@@ -77,6 +78,17 @@ for `local.json`, we accept the following configs:
   * default to `"/usr/workspace/"`
   * The workspace to build extension
 
+* server-status-page-enabled
+  * boolean
+  * default to `true`
+  * define whether server-status.html will be accessible
+
+* server-status-api-enabled
+  * boolean
+  * default to `true`
+  * define whether api check-server-status will be accessible
+  * *Note*: Disabling server-status api will disable server-status page automatically
+
 * build-with-github-repo-enabled
   * boolean
   * default to `true`
@@ -120,7 +132,11 @@ for `local.json`, we accept the following configs:
   * no default value
   * Used when github-auth-type is token
 
-### View server log
+## View server status
+
+Goto `http://<YOUR_SERVER_HOST_AND_PORT>/server-status.html`
+
+## View server log
 
 ```sh
 docker exec -it extension-builder pm2 logs

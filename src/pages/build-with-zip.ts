@@ -12,8 +12,7 @@ export default (ctx: Context) => {
   if (REPO_WHITELIST_ENABLED) {
     ctx.throw(403, 'Currently in white list mode, build with zip is disabled');
   }
-  const job = new Job();
-  job.attachInfo('buildType', 'source-upload');
+  const job = new Job('source-upload');
 
   if (!('source' in ctx.request.files)) {
     ctx.throw(400, 'No file uploaded');

@@ -13,14 +13,18 @@ export default class Builder {
 
   public static async notify () {
     if (Builder.builderAvailable && !BuildQueue.isEmpty()) {
-      Builder.builderAvailable = false;
+      Builder._builderAvailable = false;
       const jobId = BuildQueue.dequeue();
       JobPool.get(jobId).status = 'building';
       Builder.buildJob(jobId);
     }
   }
 
-  private static builderAvailable = true;
+  // tslint:disable-next-line variable-name
+  private static _builderAvailable = true;
+  public static get builderAvailable () {
+    return this._builderAvailable;
+  }
 
   private static async buildJob (jobId: string) {
     try {
@@ -86,7 +90,7 @@ export default class Builder {
       console.log(`Failed build job(${jobId}): ${err}`);
 
     } finally {
-      Builder.builderAvailable = true;
+      Builder._builderAvailable = true;
       Builder.notify();
     }
   }

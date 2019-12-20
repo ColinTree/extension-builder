@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/combine/npm/axios@0.19.0/dist/axios.min.js,npm/vue@2.6.10,npm/chart.js@2.9.3,npm/vue-chartjs@3.5.0"></script>
+  <style>
+
+/** From https://www.w3schools.com/howto/howto_css_switch.asp **/
+.switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; -webkit-transition: .4s; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; }
+input:checked + .slider { background-color: #2196F3; }
+input:focus + .slider { box-shadow: 0 0 1px #2196F3; }
+input:checked + .slider:before { -webkit-transform: translateX(26px); -ms-transform: translateX(26px); transform: translateX(26px); }
+/* Rounded sliders */ .slider.round { border-radius: 34px; }
+.slider.round:before { border-radius: 50%; }
+
+    #app {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
+    }
+    #app>div {
+      width: 80%;
+      min-width: 400px;
+      border: 1px solid black;
+    }
+    #app>label {
+      padding: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <h2>
+      Server status:
+      <label v-text="rawData.currentAvailable ? 'available' : 'building'"></label>
+      <label v-text="rawData.isUsingCache ? '(cached info)' : ''"></label>
+    </h2>
+    <p>
+      <button @click="fetchData">Refresh</button>
+      <label>
+        <input type="checkbox" v-model="handleF5" />
+        Bind F5 with refersh data <small>(Note: untick this will use <a herf="https://en.wikipedia.org/wiki/HTTP_cookie">cookie</a>)</small>
+      </label>
+    </p>
+    <div style="display: flex">
+      <div style="flex-grow: 2;">
+        <bar-chart ref="monthChart" :width="200" :height="80"></bar-chart>
+      </div>
+      <div style="flex-grow: 1;">
+        <pie-chart ref="pieChart" :width="80" :height="80"></pie-chart>
+      </div>
+    </div>
+    <label>
+      By type
+      <label class="switch">
+        <input type="checkbox" v-model="monthChartTypeSwitch">
+        <span class="slider round"></span>
+      </label>
+      By status
+    </label>
+    <p></p>
+    <div>
+      <line-chart ref="timeBuildChart" :width="200" :height="80"></line-chart>
+    </div>
+    <h5>Time used to build (counting succeed builds only)</h5>
+    <p>
+        Max: <label v-text="maxTimeBuild"></label>s
+        <br/>
+        Min: <label v-text="minTimeBuild"></label>s
+        <br/>
+        Average: <label v-text="averageTimeBuild"></label>s
+    </p>
+    <h5>Time waited in queue</h5>
+    <p>
+      Max: <label v-text="maxTimeWait"></label>s
+    </p>
+    <p></p>
+  </div>
+  <script src="server-status.js"></script>
+</body>
+
+</html>

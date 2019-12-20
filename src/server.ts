@@ -3,10 +3,11 @@ import * as Koa from 'koa';
 import * as koaBody from 'koa-body';
 import * as Router from 'koa-router';
 import * as serve from 'koa-static';
-import { KEEP_LEGACY_RESULTS, PORT, TEMP_DIR } from './configs';
+import { KEEP_LEGACY_RESULTS, PORT, SERVER_STATUS_API_ENABLED, SERVER_STATUS_PAGE_ENABLED, TEMP_DIR } from './configs';
 import buildWithGithubRepo from './pages/build-with-github-repo';
 import buildWithPlainSource from './pages/build-with-plain-source';
 import buildWithZip from './pages/build-with-zip';
+import checkServerStatus from './pages/check-server-status';
 import checkStatus from './pages/check-status';
 import result from './pages/result';
 
@@ -17,6 +18,7 @@ router.get('/build-with-github-repo', buildWithGithubRepo.get);
 router.post('/build-with-github-repo', buildWithGithubRepo.post); // webhook
 router.post('/build-with-plain-source', koaBody({ multipart: true }), buildWithPlainSource);
 router.post('/build-with-zip', koaBody({ multipart: true }), buildWithZip);
+router.get('/check-server-status', checkServerStatus);
 router.get('/check-status', checkStatus);
 router.get('/result', result);
 
@@ -24,8 +26,18 @@ app.use(async (ctx, next) => {
   console.timeLog(`${ctx.method} ${ctx.url}`);
   await next();
 });
-app.use(serve('../static'));
 app.use(async (ctx, next) => {
+  if (ctx.url === '/server-status.html' &&
+      (SERVER_STATUS_API_ENABLED === false || SERVER_STATUS_PAGE_ENABLED === false)) {
+    ctx.status = 403;
+    ctx.body = 'This page is disabled by config';
+    console.timeLog(`server-status requests are forbidden by config`);
+  } else {
+    await next();
+  }
+});
+app.use(serve('../static'));
+app.use(async (ctx, next) => { // api handler
   try {
     await next();
     ctx.status = 200;

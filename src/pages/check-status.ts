@@ -13,6 +13,11 @@ export default (ctx: Context) => {
   if (JobPool.has(jobId)) {
     const job = JobPool.get(jobId);
     ret.status = job.status;
+    ret.builderVersion = job.builderVersion;
+    ret.submitTimestamp = job.submitTimestamp;
+    ret.startTimestamp = job.startTimestamp;
+    ret.endTimestamp = job.endTimestamp;
+    ret.buildType = job.buildType;
     Object.keys(job.extraInfo).forEach(key => {
       ret[key] = job.extraInfo[key];
     });

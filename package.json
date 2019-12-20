@@ -1,6 +1,6 @@
 {
   "name": "extension-builder",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -23,6 +23,7 @@
     "koa-body": "^4.1.1",
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
+    "moment": "^2.24.0",
     "shelljs": "^0.8.3"
   },
   "scripts": {
